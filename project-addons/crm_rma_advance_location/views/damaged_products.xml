@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <record id="view_damaged_products_filter" model="ir.ui.view">
+        <field name="name">damaged.product.filters</field>
+        <field name="model">damaged.product</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <filter string="Unprinted" domain="[('printed','=',False)]" name="unprinted"/>
+                <filter string="Printed" domain="[('printed','=',True)]" name="printed"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="damaged_product_tree" model="ir.ui.view">
+        <field name="name">damaged.product.tree</field>
+        <field name="model">damaged.product</field>
+        <field name="arch" type="xml">
+            <tree string="Damaged Products">
+                <field name="product_id"/>
+                <field name="problem_description"/>
+                <field name="prodlot_id"/>
+                <field name="supplier_id"/>
+                <field name="user_id"/>
+                <field name="claim_id"/>
+                <field name="printed"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_damaged_products_tree" model="ir.actions.act_window">
+            <field name="name">Damaged Products</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">damaged.product</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_damaged_products_filter"/>
+            <field name="context">{
+                'search_default_unprinted': 1
+                }
+            </field>
+        </record>
+    <menuitem action="action_damaged_products_tree" id="menu_damaged_products"
+              parent="crm_claim.menu_aftersale" name="Damaged Products" sequence="55"/>
+
+</odoo>

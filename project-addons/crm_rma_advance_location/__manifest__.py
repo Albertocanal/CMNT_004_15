@@ -58,7 +58,11 @@ WARNING: Use with caution, this module is currently not yet completely debugged 
     'views/stock_view.xml',
     'data/stock_data.xml',
     'views/claim_rma_view.xml',
-    'views/mrp_repair_view.xml'
+    'views/mrp_repair_view.xml',
+    'wizard/claim_make_picking_to_refurbish.xml',
+    'views/damaged_products.xml',
+    'wizard/print_products.xml',
+    'security/ir.model.access.csv'
  ],
  'installable': True,
  'application': True,
