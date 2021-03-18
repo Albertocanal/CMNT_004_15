@@ -142,7 +142,7 @@ class ClaimMakePickingToRefurbishWizard(models.TransientModel):
         result['views'] = [(res and res.id or False, 'form')]
         result['res_id'] = picking_id.id
         message = _("Products successfully entered in the following RMPs %s") % rmps.mapped('number')
-        picking_id.env.user.notify_warning(message=message, sticky=True)
+        picking_id.env.user.notify_info(message=message, sticky=True)
         return result
 
     select_claim = fields.Boolean()

@@ -334,3 +334,8 @@ msgstr "<strong>Proveedor</strong>"
 #: model:res.groups,name:crm_rma_advance_location.group_damaged_products
 msgid "Responsible Damaged Products"
 msgstr "Responsable Productos Averiados"
+
+#. module: crm_rma_advance_location
+#: model:ir.model.fields,field_description:crm_rma_advance_location.field_claim_make_picking_to_refurbish_line_claim_id
+msgid "Claim"
+msgstr "RMP"
