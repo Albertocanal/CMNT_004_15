@@ -349,6 +349,6 @@ msgid "All products must have a description of the problem, please fill it out a
 msgstr "Todos los productos deben tener una descripción del problema, rellénela e intentelo nuevamente"
 
 #. module: crm_rma_advance_location
-#: model:ir.model.fields,field_description:crm_rma_advance_location.field_product_template_rmp_partner
+#: model:ir.model.fields,field_description:crm_rma_advance_location.field_res_partner_rmp_partner
 msgid "RMP partner"
 msgstr "Empresa RMP"

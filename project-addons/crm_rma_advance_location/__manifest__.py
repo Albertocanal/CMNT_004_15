@@ -63,7 +63,7 @@ WARNING: Use with caution, this module is currently not yet completely debugged 
     'wizard/claim_make_picking_to_refurbish.xml',
     'views/claim_rma_view.xml',
     'wizard/print_products.xml',
-     'views/product.xml'
+     'views/partner.xml'
  ],
  'installable': True,
  'application': True,

@@ -112,9 +112,10 @@ class ClaimMakePickingToRefurbishWizard(models.TransientModel):
                     suppliers += product.last_supplier_id
                     domain_p = domain + [('partner_id', '=', suppliers.id)]
                 rmp_id = self.env['crm.claim'].search(domain_p)
-                if not rmp_id and product.rmp_partner:
-                    suppliers += product.rmp_partner
-                    rmp_id = self.env['crm.claim'].search(domain + [('partner_id', '=', product.rmp_partner.id)])
+                suppliers_p = suppliers.mapped('rmp_partner')
+                if not rmp_id and suppliers:
+                    suppliers += suppliers_p
+                    rmp_id = self.env['crm.claim'].search(domain + [('partner_id', 'in', suppliers_p.ids)])
                 if not rmp_id:
                     raise exceptions.UserError(
                         _("There is no RMP in progress for this supplier (%s)") %
