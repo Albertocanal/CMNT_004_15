@@ -35,6 +35,7 @@
         <field name="model">claim.line</field>
         <field name="arch" type="xml">
             <tree>
+                <field name="claim_id"/>
                 <field name="product_id"/>
                 <field name="name"/>
                 <field name="prodlot_id"/>
