@@ -46,10 +46,20 @@
         </field>
     </record>
 
-    <record model="ir.actions.act_window" id="crm_claim_rma.act_crm_case_claim_lines_supplier">
+    <record model="ir.actions.act_window" id="action_damaged_products_tree">
+        <field name="name">Products Damaged</field>
+        <field name="res_model">claim.line</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain" eval="[('claim_type','=',ref('crm_claim_type.crm_claim_type_supplier'))]"/>
         <field name="context">{'search_default_unprinted': 1}</field>
         <field name="view_id" ref="claim_line_damaged_products_tree"/>
+        <field name="search_view_id" ref="view_damaged_products_filter"/>
     </record>
+
+
+    <menuitem name="damaged_products" id="menu_damaged_products"
+              parent="crm_claim.menu_aftersale" action="action_damaged_products_tree" sequence="5"/>
 
 
 </odoo>
