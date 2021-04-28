@@ -81,6 +81,13 @@ class StockDeposit(models.Model):
     # cost_subtotal = fields.Float('Cost', related='move_id.cost_subtotal',
     #                              store=True, readonly=True) TODO:Migrar.
 
+    name = fields.Char(compute="_compute_name",store=True)
+
+    @api.depends("picking_id","partner_id","partner_id.commercial_partner_id.name")
+    def _compute_name(self):
+        for deposit in self:
+            deposit.name = "%s -- %s" %(deposit.picking_id.name,deposit.partner_id.commercial_partner_id.name)
+
     @api.multi
     def sale(self):
         move_obj = self.env['stock.move']
