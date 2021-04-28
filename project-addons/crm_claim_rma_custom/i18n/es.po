@@ -497,3 +497,8 @@ msgstr "Referencia cliente"
 #: model:ir.model.fields,field_description:crm_claim_rma_custom.field_crm_claim_warehouse_date
 msgid "Final Received Date"
 msgstr "Fecha recepción final"
+
+#. module: crm_claim_rma_custom
+#: model:ir.model.fields,field_description:crm_claim_rma_custom.field_crm_claim_deposit_id
+msgid "Deposit"
+msgstr "Depósito"
