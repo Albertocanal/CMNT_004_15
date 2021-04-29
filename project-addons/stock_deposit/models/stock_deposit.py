@@ -83,10 +83,10 @@ class StockDeposit(models.Model):
 
     name = fields.Char(compute="_compute_name",store=True)
 
-    @api.depends("picking_id","partner_id","partner_id.commercial_partner_id.name")
+    @api.depends("picking_id","move_id","move_id.product_id","move_id.product_id.default_code")
     def _compute_name(self):
         for deposit in self:
-            deposit.name = "%s -- %s" %(deposit.picking_id.name,deposit.partner_id.commercial_partner_id.name)
+            deposit.name = "%s -- %s" %(deposit.picking_id.name,move_id.product_id.default_code)
 
     @api.multi
     def sale(self):
