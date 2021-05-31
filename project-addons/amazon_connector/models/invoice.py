@@ -6,12 +6,28 @@ class AccountInvoice(models.Model):
 
     amazon_order = fields.Many2one(comodel_name='amazon.sale.order')
     amazon_invoice = fields.Char()
+
     @api.multi
     def action_invoice_open(self):
         res = super(AccountInvoice, self).action_invoice_open()
         for invoice in self:
             if invoice.amazon_order:
-                invoice.amazon_order.state= "invoice_open"
+                amazon_order = invoice.amazon_order
+                amazon_order.state = "invoice_open"
+
+                settlement_line = self.env['amazon.settlement.line'].search(
+                    ['&', '&', '|', ('amazon_order_id', '=', amazon_order.id),
+                     ('amazon_order_name', '=', amazon_order.name), ('state', '!=', 'reconciled'),
+                     ('type', '=', 'Order')])
+                settlement_line.reconcile_order_lines()
+            if invoice.refund_invoice_id:
+                amazon_order = invoice.refund_invoice_id.amazon_order
+                if amazon_order:
+                    settlement_line = self.env['amazon.settlement.line'].search(
+                        ['&','&', '|', ('amazon_order_id', '=', amazon_order.id),
+                         ('amazon_order_name', '=', amazon_order.name), ('state', '!=', 'reconciled'),
+                         ('type', '=', 'Refund')])
+                    settlement_line.reconcile_refund_lines()
         return res
 
     @api.multi
