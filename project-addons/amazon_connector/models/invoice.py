@@ -20,14 +20,6 @@ class AccountInvoice(models.Model):
                      ('amazon_order_name', '=', amazon_order.name), ('state', '!=', 'reconciled'),
                      ('type', '=', 'Order')])
                 settlement_line.reconcile_order_lines()
-            if invoice.refund_invoice_id:
-                amazon_order = invoice.refund_invoice_id.amazon_order
-                if amazon_order:
-                    settlement_line = self.env['amazon.settlement.line'].search(
-                        ['&','&', '|', ('amazon_order_id', '=', amazon_order.id),
-                         ('amazon_order_name', '=', amazon_order.name), ('state', '!=', 'reconciled'),
-                         ('type', '=', 'Refund')])
-                    settlement_line.reconcile_refund_lines()
         return res
 
     @api.multi

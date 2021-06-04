@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-31 12:54+0000\n"
-"PO-Revision-Date: 2021-05-31 12:54+0000\n"
+"POT-Creation-Date: 2021-06-04 09:56+0000\n"
+"PO-Revision-Date: 2021-06-04 09:56+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -85,7 +85,7 @@ msgstr "Error API Amazon. Pedido %s. '%s'"
 
 #. module: amazon_connector
 #: code:addons/amazon_connector/models/amazon_sale_order.py:139
-#: code:addons/amazon_connector/models/amazon_settlement.py:88
+#: code:addons/amazon_connector/models/amazon_settlement.py:104
 #, python-format
 msgid "Amazon API Error. Report %s. '%s' \n"
 msgstr "Error API Amazon. Informe %s. '%s'"
@@ -228,6 +228,16 @@ msgstr "Código"
 #: model:ir.model,name:amazon_connector.model_res_company
 msgid "Companies"
 msgstr "Compañías"
+
+#. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_company_currency_id
+msgid "Company Currency"
+msgstr "Moneda de la compañía"
 
 #. module: amazon_connector
 #: model:ir.ui.menu,name:amazon_connector.config_amazon_menu
@@ -429,7 +439,7 @@ msgid "Item Event"
 msgstr "Evento del elemento"
 
 #. module: amazon_connector
-#: code:addons/amazon_connector/models/amazon_sale_order.py:302
+#: code:addons/amazon_connector/models/amazon_sale_order.py:305
 #, python-format
 msgid "ItemPrice or ItemTax fields are empty %s\n"
 msgstr "Los campos ItemPrice o ItemTax vienen vacíos %s\n"
@@ -557,6 +567,11 @@ msgid "Order"
 msgstr "Pedido"
 
 #. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_sale_order_line_order_item
+msgid "Order Item"
+msgstr "Elemento del Pedido"
+
+#. module: amazon_connector
 #: model:ir.model.fields,field_description:amazon_connector.field_amazon_sale_order_order_line
 #: model:ir.ui.view,arch_db:amazon_connector.amazon_sale_order_form
 #: model:ir.ui.view,arch_db:amazon_connector.amazon_settlement_form
@@ -650,7 +665,12 @@ msgid "Product Qty"
 msgstr "Cantidad producto"
 
 #. module: amazon_connector
-#: code:addons/amazon_connector/models/amazon_sale_order.py:299
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_sale_order_line_product_seller_sku
+msgid "Product Seller Sku"
+msgstr "Sku del producto"
+
+#. module: amazon_connector
+#: code:addons/amazon_connector/models/amazon_sale_order.py:302
 #, python-format
 msgid "Product with ASIN CODE %s not found\n"
 msgstr "El producto con código ASIN %s no ha sido encontrado \n"
@@ -708,6 +728,11 @@ msgstr "Token de refresco"
 #: selection:amazon.settlement.line,type:0
 msgid "Refund"
 msgstr "Devolución"
+
+#. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_line_refund_invoice_id
+msgid "Refund Invoice"
+msgstr "Factura de abono"
 
 #. module: amazon_connector
 #: model:ir.ui.view,arch_db:amazon_connector.amazon_sale_order_form
@@ -827,19 +852,19 @@ msgid "Theoretical Total Taxes"
 msgstr "Impuestos aplicados por Amazon"
 
 #. module: amazon_connector
-#: code:addons/amazon_connector/models/amazon_sale_order.py:438
+#: code:addons/amazon_connector/models/amazon_sale_order.py:441
 #, python-format
 msgid "There are no deposit for this order"
 msgstr "No hay depósitos para este pedido"
 
 #. module: amazon_connector
-#: code:addons/amazon_connector/models/amazon_sale_order.py:448
+#: code:addons/amazon_connector/models/amazon_sale_order.py:451
 #, python-format
 msgid "There aren't any invoices linked to this Amazon order"
 msgstr "No hay ninguna factura asociada a este pedido"
 
 #. module: amazon_connector
-#: code:addons/amazon_connector/models/amazon_sale_order.py:310
+#: code:addons/amazon_connector/models/amazon_sale_order.py:313
 #, python-format
 msgid "There is no currency with this name or it is no activated %s\n"
 msgstr "No hay ninguna moneda con este nombre o no está activa. %s \n"
@@ -862,8 +887,14 @@ msgid "Total Amount"
 msgstr "Importe total"
 
 #. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_total_amount_company_currency
+msgid "Total Amount Company Currency"
+msgstr "Importe total divisa compañia"
+
+#. module: amazon_connector
 #: code:addons/amazon_connector/models/amazon_sale_order.py:201
 #: code:addons/amazon_connector/models/amazon_sale_order.py:270
+#: code:addons/amazon_connector/models/amazon_settlement.py:302
 #, python-format
 msgid "Total amount != Theoretical total amount (%f-%f)\n"
 msgstr "Total != Total enviado por Amazon (%f-%f)\n"
@@ -910,7 +941,7 @@ msgid "Wizard"
 msgstr "Asistente"
 
 #. module: amazon_connector
-#: code:addons/amazon_connector/models/invoice.py:42
+#: code:addons/amazon_connector/models/invoice.py:32
 #, python-format
 msgid "You cannot merge invoices with differents amazon orders: %s"
 msgstr "No puedes fusionar facturas con diferentes pedidos de Amazon: %s"

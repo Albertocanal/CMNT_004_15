@@ -293,7 +293,10 @@ class AmazonSaleOrder(models.Model):
             product_qty = int(order_item.get('QuantityOrdered'))
             asin_code = order_item.get('ASIN')
             line = {'product_asin': asin_code,
-                    'product_qty': product_qty}
+                    'product_qty': product_qty,
+                    'product_seller_sku':  order_item.get('SellerSKU'),
+                    'order_item':  order_item.get('OrderItemId'),
+            }
             product_obj = self.env['product.product'].search([('asin_code', '=', asin_code)])
             if not product_obj:
                 amazon_order_values['message_error'] += _('Product with ASIN CODE %s not found\n') % asin_code
@@ -451,6 +454,8 @@ class AmazonSaleOrderLine(models.Model):
     _name = 'amazon.sale.order.line'
 
     product_asin = fields.Char(required=True)
+    product_seller_sku = fields.Char()
+    order_item = fields.Char()
     product_id = fields.Many2one('product.product')
     product_qty = fields.Float()
     price_unit = fields.Float()
