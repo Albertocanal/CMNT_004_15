@@ -6,14 +6,29 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-06-04 09:56+0000\n"
-"PO-Revision-Date: 2021-06-04 09:56+0000\n"
+"POT-Creation-Date: 2021-06-14 06:37+0000\n"
+"PO-Revision-Date: 2021-06-14 06:37+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: amazon_connector
+#: model:mail.template,body_html:amazon_connector.send_amazon_settlement
+msgid "\n"
+"            <p style=\"margin:0px 0px 9px 0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;\">The Amazon settlement <strong style=\"font-weight:bold;\">${object.name} - ${object.marketplace_id.name} </strong> has ended.</p>\n"
+"            <p style=\"margin:0px 0px 9px 0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;\">ERRORS: ${ctx.get('error_count')}</p>\n"
+"            <p style=\"margin:0px 0px 9px 0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;\">RECONCILED: ${ctx.get('reconciled_count')}</p>\n"
+"         \n"
+"        "
+msgstr "\n"
+"            <p style=\"margin:0px 0px 9px 0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;\">El informe de pago de amazon <strong style=\"font-weight:bold;\">${object.name} - ${object.marketplace_id.name} </strong> ha terminado.</p>\n"
+"            <p style=\"margin:0px 0px 9px 0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;\">ERRORES: ${ctx.get('error_count')}</p>\n"
+"            <p style=\"margin:0px 0px 9px 0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;\">CONCILIADAS: ${ctx.get('reconciled_count')}</p>\n"
+"         \n"
+"        "
 
 #. module: amazon_connector
 #: model:mail.template,body_html:amazon_connector.send_mail_errors_amazon
@@ -34,6 +49,11 @@ msgstr "\n"
 #: model:ir.model.fields,field_description:amazon_connector.field_amazon_marketplace_account_id
 msgid "Account"
 msgstr "Cuenta"
+
+#. module: amazon_connector
+#: model:ir.model,name:amazon_connector.model_account_move
+msgid "Account Entry"
+msgstr "Asiento contable"
 
 #. module: amazon_connector
 #: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_line_adjustment_id
@@ -79,13 +99,14 @@ msgstr "Error API Amazon. Ningún pedido se ha creado debido ha que se ha produc
 #: code:addons/amazon_connector/models/amazon_sale_order.py:193
 #: code:addons/amazon_connector/models/amazon_sale_order.py:246
 #: code:addons/amazon_connector/models/amazon_sale_order.py:263
+#: code:addons/amazon_connector/models/amazon_settlement.py:249
 #, python-format
 msgid "Amazon API Error. Order %s. '%s' \n"
 msgstr "Error API Amazon. Pedido %s. '%s'"
 
 #. module: amazon_connector
 #: code:addons/amazon_connector/models/amazon_sale_order.py:139
-#: code:addons/amazon_connector/models/amazon_settlement.py:104
+#: code:addons/amazon_connector/models/amazon_settlement.py:96
 #, python-format
 msgid "Amazon API Error. Report %s. '%s' \n"
 msgstr "Error API Amazon. Informe %s. '%s'"
@@ -144,14 +165,25 @@ msgid "Amazon Orders"
 msgstr "Pedidos de Amazon"
 
 #. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_account_move_amazon_refund_settlement_id
+msgid "Amazon Refund Settlement"
+msgstr "Informe de Amazon"
+
+#. module: amazon_connector
 #: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_amazon_report_document
 msgid "Amazon Report Document"
 msgstr "Documento Origen Informe"
 
 #. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_account_move_amazon_settlement_id_21898
 #: model:ir.ui.view,arch_db:amazon_connector.amazon_settlement_form
 msgid "Amazon Settlement"
 msgstr "Pagos Amazon"
+
+#. module: amazon_connector
+#: model:mail.template,subject:amazon_connector.send_amazon_settlement
+msgid "Amazon Settlement Read complete - ${object.name}"
+msgstr "Informe de Amazon leído con errores - ${object.name}"
 
 #. module: amazon_connector
 #: model:ir.actions.act_window,name:amazon_connector.action_show_settlements
@@ -316,6 +348,11 @@ msgid "Deposits Count"
 msgstr "Contador Depósitos"
 
 #. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_line_destination_country_id
+msgid "Destination Country"
+msgstr "País de destino"
+
+#. module: amazon_connector
 #: model:ir.model.fields,field_description:amazon_connector.field_amazon_sale_order_line_discount
 msgid "Discount"
 msgstr "Descuento"
@@ -345,6 +382,7 @@ msgstr "Fecha final"
 
 #. module: amazon_connector
 #: selection:amazon.sale.order,state:0
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_line_error
 msgid "Error"
 msgstr "Error"
 
@@ -545,14 +583,24 @@ msgid "Message Error"
 msgstr "Mensaje de Error"
 
 #. module: amazon_connector
-#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_move_id
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_move_ids
 msgid "Move"
-msgstr "Asiento"
+msgstr "Asientos de ventas"
 
 #. module: amazon_connector
-#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_move_refund_id
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_move_refund_ids
 msgid "Move Refund"
 msgstr "Asiento de las devoluciones"
+
+#. module: amazon_connector
+#: model:ir.ui.view,arch_db:amazon_connector.amazon_settlement_form
+msgid "Moves"
+msgstr "Asientos"
+
+#. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_moves_count
+msgid "Moves Count"
+msgstr "Contador de Asientos"
 
 #. module: amazon_connector
 #: model:ir.model.fields,field_description:amazon_connector.field_amazon_marketplace_name
@@ -699,11 +747,6 @@ msgstr "Leído"
 
 #. module: amazon_connector
 #: model:ir.ui.view,arch_db:amazon_connector.amazon_settlement_form
-msgid "Reconcile"
-msgstr "Conciliar"
-
-#. module: amazon_connector
-#: model:ir.ui.view,arch_db:amazon_connector.amazon_settlement_form
 msgid "Reconcile All"
 msgstr "Conciliar Todo"
 
@@ -733,6 +776,16 @@ msgstr "Devolución"
 #: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_line_refund_invoice_id
 msgid "Refund Invoice"
 msgstr "Factura de abono"
+
+#. module: amazon_connector
+#: model:ir.model.fields,field_description:amazon_connector.field_amazon_settlement_refund_moves_count
+msgid "Refund Moves Count"
+msgstr "Contador de asientos de devolución"
+
+#. module: amazon_connector
+#: model:ir.ui.view,arch_db:amazon_connector.amazon_settlement_form
+msgid "Refund moves"
+msgstr "Asientos de devolución"
 
 #. module: amazon_connector
 #: model:ir.ui.view,arch_db:amazon_connector.amazon_sale_order_form
@@ -870,6 +923,12 @@ msgid "There is no currency with this name or it is no activated %s\n"
 msgstr "No hay ninguna moneda con este nombre o no está activa. %s \n"
 
 #. module: amazon_connector
+#: code:addons/amazon_connector/models/amazon_settlement.py:337
+#, python-format
+msgid "There is no invoice for this order\n"
+msgstr "No hay factura para este pedido\n"
+
+#. module: amazon_connector
 #: code:addons/amazon_connector/models/amazon_sale_order.py:219
 #: code:addons/amazon_connector/models/amazon_sale_order.py:275
 #, python-format
@@ -894,7 +953,7 @@ msgstr "Importe total divisa compañia"
 #. module: amazon_connector
 #: code:addons/amazon_connector/models/amazon_sale_order.py:201
 #: code:addons/amazon_connector/models/amazon_sale_order.py:270
-#: code:addons/amazon_connector/models/amazon_settlement.py:302
+#: code:addons/amazon_connector/models/amazon_settlement.py:330
 #, python-format
 msgid "Total amount != Theoretical total amount (%f-%f)\n"
 msgstr "Total != Total enviado por Amazon (%f-%f)\n"
@@ -941,7 +1000,7 @@ msgid "Wizard"
 msgstr "Asistente"
 
 #. module: amazon_connector
-#: code:addons/amazon_connector/models/invoice.py:32
+#: code:addons/amazon_connector/models/invoice.py:26
 #, python-format
 msgid "You cannot merge invoices with differents amazon orders: %s"
 msgstr "No puedes fusionar facturas con diferentes pedidos de Amazon: %s"

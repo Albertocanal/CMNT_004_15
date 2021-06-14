@@ -46,8 +46,8 @@ class AmazonSettlement(models.Model):
 
     marketplace_id = fields.Many2one('amazon.marketplace', related="line_ids.marketplace_id")
 
-    move_id = fields.Many2one('account.move')
-    move_refund_id = fields.Many2one('account.move')
+    move_ids = fields.One2many('account.move', "amazon_settlement_id")
+    move_refund_ids = fields.One2many('account.move', "amazon_refund_settlement_id")
 
     @api.multi
     @api.depends("line_ids", "line_ids.state")
@@ -64,14 +64,6 @@ class AmazonSettlement(models.Model):
     state = fields.Selection([('read', 'Read'), ('partially_reconciled', 'Partially Reconciled'), ('done', 'Done')],
                              string='Status', readonly=True, copy=False,
                              index=True, track_visibility='onchange', store=True, compute="_compute_state")
-
-    @api.multi
-    def reconcile_all(self):
-        for settlement in self:
-            lines_orders = settlement.line_ids.filtered(lambda l: l.type == 'Order' and l.state != 'reconciled')
-            lines_orders.reconcile_order_lines()
-            lines_refund = settlement.line_ids.filtered(lambda l: l.type == 'Refund' and l.state != 'reconciled')
-            lines_refund.reconcile_refund_lines()
 
     def cron_reconcile_amazon_invoices(self, created_since=False, force_date=False):
         amazon_time_rate_limit = float(self.env['ir.config_parameter'].sudo().get_param('amazon.time.rate.limit'))
@@ -203,6 +195,13 @@ class AmazonSettlement(models.Model):
                                           'amount': float(advertising_transaction[5].text)})
                     self.env['amazon.settlement.line'].create(line_vals)
                 settlement.reconcile()
+                lines_error = settlement.line_ids.filtered(
+                    lambda l: l.state == 'read' and l.type in ['Order', 'Refund'])
+                if lines_error:
+                    template = self.env.ref('amazon_connector.send_amazon_settlement')
+                    context = {'error_count': len(lines_error),
+                               'reconciled_count': len(settlement.line_ids) - len(lines_error)}
+                    template.with_context(context).send_mail(settlement.id)
 
     def parse_order_and_refund(self, parse_obj):
         if parse_obj.tag == 'Order':
@@ -215,19 +214,46 @@ class AmazonSettlement(models.Model):
             cont = 2
         else:
             cont = 1
-        line_vals = {'type': line_type,
-                     'amazon_order_name': parse_obj[0].text,
-                     'amazon_order_id': self.env['amazon.sale.order'].search(
-                         [('name', 'ilike', parse_obj[0].text)]).id,
-                     'merchant_order_id': parse_obj[1].text if cont == 2 else False,
-                     'shipment_id': parse_obj[cont].text if line_type == 'Order' else False,
-                     'adjustment_id': parse_obj[cont].text if line_type == 'Refund' else False,
-                     'marketplace_id': self.env['amazon.marketplace'].search(
-                         [('amazon_name', 'ilike', parse_obj[cont + 1].text)]).id,
-                     'fulfillment': parse_obj[cont + 2][0].text,
-                     'posted_date': parse_obj[cont + 2][1].text,
-                     'settlement_id': self.id}
-        line = self.env['amazon.settlement.line'].create(line_vals)
+        amazon_order_name = parse_obj[0].text
+        line = self.line_ids.filtered(lambda l: l.type == line_type and l.amazon_order_name == amazon_order_name)
+        if not line:
+            amazon_order = self.env['amazon.sale.order'].search(
+                [('name', 'ilike', parse_obj[0].text)])
+            line_vals = {'type': line_type,
+                         'amazon_order_name': amazon_order_name,
+                         'merchant_order_id': parse_obj[1].text if cont == 2 else False,
+                         'shipment_id': parse_obj[cont].text if line_type == 'Order' else False,
+                         'adjustment_id': parse_obj[cont].text if line_type == 'Refund' else False,
+                         'marketplace_id': self.env['amazon.marketplace'].search(
+                             [('amazon_name', 'ilike', parse_obj[cont + 1].text)]).id,
+                         'fulfillment': parse_obj[cont + 2][0].text,
+                         'posted_date': parse_obj[cont + 2][1].text,
+                         'settlement_id': self.id}
+            if amazon_order:
+                line_vals.update({'amazon_order_id': amazon_order.id,
+                                  'destination_country_id': amazon_order.country_id.id})
+            else:
+                amazon_time_rate_limit = float(
+                    self.env['ir.config_parameter'].sudo().get_param('amazon.time.rate.limit'))
+                credentials = self.env['amazon.sale.order']._get_credentials()
+                order_obj = Orders(marketplace=Marketplaces.ES, credentials=credentials)
+                read = False
+                while not read:
+                    try:
+                        order_address = order_obj.get_order_address(order_id=amazon_order_name).payload
+                        read = True
+                    except SellingApiRequestThrottledException:
+                        time.sleep(amazon_time_rate_limit)
+                        read = False
+                    except SellingApiException as e:
+                        raise UserError(_("Amazon API Error. Order %s. '%s' \n") % (amazon_order_name, e))
+
+                address = order_address.get('ShippingAddress', False)
+                if address.get('CountryCode', False):
+                    line_vals.update({'destination_country_id': self.env['res.country'].search(
+                        [('code', '=', address.get('CountryCode', False))]).id})
+
+            line = self.env['amazon.settlement.line'].create(line_vals)
         for item_p in parse_obj[cont + 2].iter(item_name):
             item_vals = {'amazon_order_item_code': item_p[0].text,
                          'sku': item_p[1].text if line_type == 'Order' else item_p[2].text,
@@ -250,16 +276,17 @@ class AmazonSettlement(models.Model):
         amazon_max_difference_allowed = float(
             self.env['ir.config_parameter'].sudo().get_param('amazon.max.difference.allowed'))
         for settlement in self:
-            line_order_ids = settlement.line_ids.filtered(lambda l: l.type == 'Order')
+            line_order_ids = settlement.line_ids.filtered(lambda l: l.type == 'Order' and l.state != 'reconciled')
             if line_order_ids:
                 settlement._reconcile_amazon_settlement_lines(line_order_ids, amazon_max_difference_allowed)
-            line_refund_ids = settlement.line_ids.filtered(lambda l: l.type == 'Refund')
+            line_refund_ids = settlement.line_ids.filtered(lambda l: l.type == 'Refund' and l.state != 'reconciled')
             if line_refund_ids:
                 settlement._reconcile_amazon_settlement_lines(line_refund_ids, amazon_max_difference_allowed,
                                                               refund_mode=True)
 
     def _reconcile_amazon_settlement_lines(self, line_order_ids, amazon_max_difference_allowed, refund_mode=False):
         lines_to_reconcile = self.env['amazon.settlement.line']
+        lines_not_reconciled = self.env['amazon.settlement.line']
         total_amount = 0
         states = ['cancel']
         lines_with_products = {}
@@ -291,73 +318,105 @@ class AmazonSettlement(models.Model):
                                 lines_with_products[line.id] = [item_val]
                 else:
                     theoretical_amount = sum(amazon_invoice.mapped('amount_total'))
-            rate = line.settlement_id.currency_id.with_context(
-                date=line.posted_date)._get_conversion_rate(
-                line.settlement_id.company_currency_id,
-                line.settlement_id.currency_id)
-            positive_events = abs(line.amount_items_positive_events) / rate
-            if abs(theoretical_amount) - positive_events <= amazon_max_difference_allowed:
-                lines_to_reconcile |= line
+                rate = line.settlement_id.currency_id.with_context(
+                    date=line.posted_date)._get_conversion_rate(
+                    line.settlement_id.company_currency_id,
+                    line.settlement_id.currency_id)
+                positive_events = abs(line.amount_items_positive_events) / rate
+                if abs(theoretical_amount) - positive_events <= amazon_max_difference_allowed:
+                    lines_to_reconcile |= line
+                else:
+                    if theoretical_amount > 0:
+                        line.error = _('Total amount != Theoretical total amount (%f-%f)\n') % (
+                            abs(theoretical_amount), positive_events)
+                    lines_not_reconciled += line
+                    theoretical_amount = 0
+                if theoretical_amount:
+                    total_amount += theoretical_amount
             else:
-                line.error = _('Total amount != Theoretical total amount (%f-%f)\n') % (
-                    abs(theoretical_amount), positive_events)
-            total_amount += theoretical_amount if theoretical_amount else positive_events
-        journal_id = self.env['account.journal'].search([('code', '=', 'AMAZ'), ('name', '=', 'Amazon')])
-        vals = {'journal_id': journal_id.id,
-                'date': self.deposit_date
+                line.error = _('There is no invoice for this order\n')
+                lines_not_reconciled += line
+        if total_amount > 0:
+            journal_id = self.env['account.journal'].search([('code', '=', 'AMAZ'), ('name', '=', 'Amazon')])
+            vals = {'journal_id': journal_id.id,
+                    'date': self.deposit_date
+                    }
+            if refund_mode:
+                vals.update({'ref': "Pagos desde web Amazon",
+                             'amazon_refund_settlement_id': self.id})
+            else:
+                vals.update({'ref': "Devoluciones desde web Amazon",
+                             'amazon_settlement_id': self.id})
+            move = self.env['account.move'].create(vals)
+            account_430 = self.env['account.account'].search(
+                [('code', '=', '43000000'), ('company_id', '=', self.env.user.company_id.id)])
+            account_trans = self.marketplace_id.account_id if self.marketplace_id else self.line_ids[
+                0].marketplace_id.account_id
+            partner_id = self.env['res.partner'].search([('name', '=', 'Ventas Amazon')])
+            values = {'partner_id': partner_id.id,
+                      'journal_id': journal_id.id,
+                      'date': self.deposit_date,
+                      'date_maturity': self.deposit_date,
+                      'company_id': self.env.user.company_id.id,
+                      'move_id': move.id}
+            if refund_mode:
+                values_430 = {
+                    'name': "Devoluciones ventas",
+                    'account_id': account_430.id,
+                    'debit': total_amount,
                 }
-        if refund_mode:
-            vals.update({'ref': "Pagos desde web Amazon"})
-        else:
-            vals.update({'ref': "Devoluciones desde web Amazon"})
-        move = self.env['account.move'].create(vals)
-        if refund_mode:
-            self.move_refund_id = move
-        else:
-            self.move_id = move
-        account_430 = self.env['account.account'].search(
-            [('code', '=', '43000000'), ('company_id', '=', self.env.user.company_id.id)])
-        account_trans = self.marketplace_id.account_id if self.marketplace_id else self.line_ids[
-            0].marketplace_id.account_id
-        partner_id = self.env['res.partner'].search([('name', '=', 'Ventas Amazon')])
-        values = {'partner_id': partner_id.id,
-                  'journal_id': journal_id.id,
-                  'date': self.deposit_date,
-                  'date_maturity': self.deposit_date,
-                  'company_id': self.env.user.company_id.id,
-                  'move_id': move.id}
-        if refund_mode:
-            values_430 = {
-                'name': "Devoluciones ventas",
-                'account_id': account_430.id,
-                'debit': total_amount,
-            }
-            values_trans = {
-                'name': "Cobro Amazon",
-                'account_id': account_trans.id,
-                'credit': total_amount,
-            }
-        else:
-            values_430 = {
-                'name': "Ventas no facturadas",
-                'account_id': account_430.id,
-                'credit': total_amount,
-            }
+                values_trans = {
+                    'name': "Cobro Amazon",
+                    'account_id': account_trans.id,
+                    'credit': total_amount,
+                }
+            else:
+                values_430 = {
+                    'name': "Ventas no facturadas",
+                    'account_id': account_430.id,
+                    'credit': total_amount,
+                }
 
-            values_trans = {
-                'name': "Pago Amazon",
-                'account_id': account_trans.id,
-                'debit': total_amount,
-            }
-        values_430.update(values)
-        values_trans.update(values)
-        move_lines = [values_trans, values_430]
-        move.line_ids = [(0, 0, x) for x in move_lines]
-        move.post()
-        if refund_mode:
-            lines_to_reconcile.reconcile_refund_lines(lines_with_products)
+                values_trans = {
+                    'name': "Pago Amazon",
+                    'account_id': account_trans.id,
+                    'debit': total_amount,
+                }
+            values_430.update(values)
+            values_trans.update(values)
+            move_lines = [values_trans, values_430]
+            move.line_ids = [(0, 0, x) for x in move_lines]
+            move.post()
+            if refund_mode:
+                lines_to_reconcile.reconcile_refund_lines(move, lines_with_products)
+            else:
+                lines_to_reconcile.reconcile_order_lines(move)
+
+    def action_view_moves(self):
+        action = self.env.ref('account.action_move_journal_line').read()[0]
+        if len(self.move_ids) > 0:
+            action['domain'] = [('id', 'in', self.move_ids.ids)]
+            action['context'] = [('id', 'in', self.move_ids.ids)]
         else:
-            lines_to_reconcile.reconcile_order_lines()
+            action = {'type': 'ir.actions.act_window_close'}
+        return action
+
+    def action_view_refund_moves(self):
+        action = self.env.ref('account.action_move_journal_line').read()[0]
+        if len(self.move_refund_ids) > 0:
+            action['domain'] = [('id', 'in', self.move_refund_ids.ids)]
+            action['context'] = [('id', 'in', self.move_refund_ids.ids)]
+        else:
+            action = {'type': 'ir.actions.act_window_close'}
+        return action
+
+    moves_count = fields.Integer(compute="_compute_moves")
+    refund_moves_count = fields.Integer(compute="_compute_moves")
+
+    def _compute_moves(self):
+        for settlement in self:
+            settlement.moves_count = len(settlement.move_ids)
+            settlement.refund_moves_count = len(settlement.move_refund_ids)
 
 
 class AmazonSettlementLine(models.Model):
@@ -397,6 +456,7 @@ class AmazonSettlementLine(models.Model):
                              index=True, track_visibility='onchange', default='read')
     refund_invoice_id = fields.Many2one('account.invoice')
     error = fields.Char()
+    destination_country_id = fields.Many2one('res.country')
 
     @api.multi
     def _compute_items_value(self):
@@ -422,7 +482,7 @@ class AmazonSettlementLine(models.Model):
             'partner_id': invoice.partner_id.id,
             'fiscal_position_id':
                 invoice.fiscal_position_id.id,
-            'date_invoice': datetime.now().strftime('%Y-%m-%d'),
+            'date_invoice': self.posted_date,
             'journal_id': invoice.journal_id.id,
             'account_id':
                 invoice.partner_id.property_account_receivable_id.id,
@@ -440,7 +500,7 @@ class AmazonSettlementLine(models.Model):
         return self.env['account.invoice'].create(header_vals)
 
     @api.multi
-    def reconcile_refund_lines(self, line_with_products={}):
+    def reconcile_refund_lines(self, move_id, line_with_products={}):
         for line in self:
             if not line.amazon_order_id:
                 am_o = self.env['amazon.sale.order'].search(
@@ -450,7 +510,7 @@ class AmazonSettlementLine(models.Model):
             if not line.refund_invoice_id:
                 if line_with_products.get(line.id, False):
                     elements = line_with_products[line.id]
-                    refund = self.make_refund_invoice(elements[0].get('invoice_line').invoice_id)
+                    refund = line.make_refund_invoice(elements[0].get('invoice_line').invoice_id)
                     line.refund_invoice_id = refund
                     for e in elements:
                         product = e.get('product_id')
@@ -505,7 +565,7 @@ class AmazonSettlementLine(models.Model):
                 move_line_id = line.refund_invoice_id.move_id.line_ids.filtered(
                     lambda aml: aml.account_id.code == '43000000')
                 if move_line_id:
-                    moves = line.settlement_id.move_refund_id.line_ids.filtered(
+                    moves = move_id.line_ids.filtered(
                         lambda ml: ml.account_id.code == '43000000' and ml.debit > 0) + move_line_id
                     move_lines_filtered = moves.filtered(lambda aml: not aml.reconciled)
                     move_lines_filtered.with_context(skip_full_reconcile_check='amount_currency_excluded').reconcile()
@@ -513,7 +573,7 @@ class AmazonSettlementLine(models.Model):
                     line.state = "reconciled"
 
     @api.multi
-    def reconcile_order_lines(self):
+    def reconcile_order_lines(self, move_id):
         for line in self:
             if not line.amazon_order_id:
                 am_o = self.env['amazon.sale.order'].search(
@@ -530,7 +590,7 @@ class AmazonSettlementLine(models.Model):
                 move_line_id = self.env['account.move.line'].search(
                     [('name', 'ilike', line.amazon_order_name), ('account_id.code', '=', '43000000')])
             if move_line_id:
-                moves = line.settlement_id.move_id.line_ids.filtered(
+                moves = move_id.line_ids.filtered(
                     lambda ml: ml.account_id.code == '43000000') + move_line_id
                 move_lines_filtered = moves.filtered(lambda aml: not aml.reconciled)
                 move_lines_filtered.with_context(skip_full_reconcile_check='amount_currency_excluded').reconcile()

@@ -14,12 +14,6 @@ class AccountInvoice(models.Model):
             if invoice.amazon_order:
                 amazon_order = invoice.amazon_order
                 amazon_order.state = "invoice_open"
-
-                settlement_line = self.env['amazon.settlement.line'].search(
-                    ['&', '&', '|', ('amazon_order_id', '=', amazon_order.id),
-                     ('amazon_order_name', '=', amazon_order.name), ('state', '!=', 'reconciled'),
-                     ('type', '=', 'Order')])
-                settlement_line.reconcile_order_lines()
         return res
 
     @api.multi
@@ -33,5 +27,12 @@ class AccountInvoice(models.Model):
             invoice = self.env['account.invoice'].browse(list(res))
             invoice.write({'name':amazon_order.name,'amazon_order':amazon_order.id,'amazon_invoice':amazon_order.amazon_invoice_name})
         return res
+
+
+class AccountMove(models.Model):
+    _inherit = 'account.move'
+
+    amazon_settlement_id = fields.Many2one("amazon.settlement")
+    amazon_refund_settlement_id = fields.Many2one("amazon.settlement")
 
 
