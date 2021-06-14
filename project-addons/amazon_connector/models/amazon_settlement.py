@@ -304,18 +304,18 @@ class AmazonSettlement(models.Model):
                              ('order_item', '=', item.amazon_order_item_code),
                              ('order_id', '=', line.amazon_order_id.id),
                              ]).mapped('product_id')
-                        item_val = {}
                         if product:
                             invoice_line = amazon_invoice.invoice_line_ids.filtered(
                                 lambda il: il.product_id == product[0])
                             if invoice_line:
+                                invoice_line = invoice_line[0]
                                 theoretical_amount += invoice_line.price_total / invoice_line.quantity
-                                item_val = {'product_id': product, 'invoice_line': invoice_line[0]}
-                        if item_val:
-                            if line.id in lines_with_products.keys():
-                                lines_with_products[line.id].append(item_val)
-                            else:
-                                lines_with_products[line.id] = [item_val]
+                                item_val = {'product_id': product, 'invoice_line': invoice_line}
+                                if line.id in lines_with_products.keys():
+                                    lines_with_products[line.id].append(item_val)
+                                else:
+                                    lines_with_products[line.id] = [item_val]
+
                 else:
                     theoretical_amount = sum(amazon_invoice.mapped('amount_total'))
                 rate = line.settlement_id.currency_id.with_context(
