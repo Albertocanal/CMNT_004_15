@@ -18,7 +18,8 @@
 #
 ##############################################################################
 
-from odoo import fields, models
+from odoo import fields, models, api, _
+from odoo.exceptions import ValidationError
 
 
 class ProductTemplate(models.Model):
@@ -37,3 +38,16 @@ class ProductTemplate(models.Model):
                              string='Status',
                              default='sellable',
                              index=True)
+
+    @api.multi
+    @api.constrains('sale_ok')
+    def allow_sale_ok(self):
+        for item in self:
+            if item.sale_ok:
+                product_product_id = item.product_variant_ids.id
+                product_product_obj = self.env['product.product'].browse(product_product_id)
+                if product_product_obj.standard_price_2 <= 0:
+                    raise ValidationError(_(
+                        "The product cannot be sold if cost price 2 is zero"))
+                else:
+                    sale_ok = True

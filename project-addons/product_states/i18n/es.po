@@ -82,3 +82,8 @@ msgstr "Condiciones de venta"
 msgid "Make to order"
 msgstr "Bajo Pedido"
 
+#. module: product_states
+#: code:addons/product_states/product.py:50
+#, python-format
+msgid "The product cannot be sold if cost price 2 is zero"
+msgstr "El producto no puede ser vendido si el precio de coste 2 es cero"
