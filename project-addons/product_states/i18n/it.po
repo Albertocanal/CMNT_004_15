@@ -85,5 +85,5 @@ msgstr "Procedere con l'ordine"
 #. module: product_states
 #: code:addons/product_states/product.py:50
 #, python-format
-msgid "The product cannot be sold if cost price 2 is zero"
+msgid "The product cannot be sold if cost price is zero"
 msgstr "Il prodotto non può essere venduto se il prezzo di costo è zero"
