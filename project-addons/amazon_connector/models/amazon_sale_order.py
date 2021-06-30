@@ -411,6 +411,10 @@ class AmazonSaleOrder(models.Model):
                             if cont + deposit.product_uom_qty < max:
                                 cont += deposit.product_uom_qty
                                 deposits += deposit
+                            elif cont + deposit.product_uom_qty == max:
+                                cont += deposit.product_uom_qty
+                                deposits += deposit
+                                break
                             else:
                                 qty_to_sale = max - cont
                                 new_deposit = deposit.copy()
