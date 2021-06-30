@@ -291,6 +291,8 @@ class AmazonSaleOrder(models.Model):
         order_total_taxes = 0
         for order_item in order.get('OrderItems'):
             product_qty = int(order_item.get('QuantityOrdered'))
+            if product_qty <= 0:
+                continue
             asin_code = order_item.get('ASIN')
             line = {'product_asin': asin_code,
                     'product_qty': product_qty,
