@@ -298,10 +298,10 @@ class AmazonSettlement(models.Model):
                 }
         if not refund_mode:
             vals.update({'ref': "Pagos desde web Amazon",
-                         'amazon_refund_settlement_id': self.id})
+                         'amazon_settlement_id': self.id})
         else:
             vals.update({'ref': "Devoluciones desde web Amazon",
-                         'amazon_settlement_id': self.id})
+                         'amazon_refund_settlement_id': self.id})
         move = self.env['account.move'].create(vals)
         account_430 = self.env['account.account'].search(
             [('code', '=', '43000000'), ('company_id', '=', self.env.user.company_id.id)])
@@ -427,7 +427,7 @@ class AmazonSettlement(models.Model):
     def _compute_moves(self):
         for settlement in self:
             settlement.moves_count = len(settlement.move_ids)
-            settlement.refund_moves_count = len(settlement.move_refund_ids)
+            settlement.refund_moves_count = len(settlement.refund_moves_count)
 
 
 class AmazonSettlementLine(models.Model):
