@@ -266,10 +266,14 @@ class AmazonSettlement(models.Model):
                 item.parse_item(item_price, 'price')
 
             if len(item_p) > 4:
-                for item_fee in item_p[4]:
-                    item.parse_item(item_fee, 'fee')
-                if len(item_p) > 5:
-                    for cont in range(5, len(item_p)-1):
+                length = 4
+                if item_p[4].tag != 'PromotionAdjustment':
+                    length+=1
+                    for item_fee in item_p[4]:
+                        item.parse_item(item_fee, 'fee')
+
+                if len(item_p) > length:
+                    for cont in range(length, len(item_p)):
                         item.parse_item(item_p[cont], 'promotion')
         return line
 
