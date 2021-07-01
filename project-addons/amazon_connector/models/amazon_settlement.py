@@ -427,7 +427,7 @@ class AmazonSettlement(models.Model):
     def _compute_moves(self):
         for settlement in self:
             settlement.moves_count = len(settlement.move_ids)
-            settlement.refund_moves_count = len(settlement.refund_moves_count)
+            settlement.refund_moves_count = len(settlement.move_refund_ids)
 
 
 class AmazonSettlementLine(models.Model):
