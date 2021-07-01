@@ -269,7 +269,7 @@ class AmazonSettlement(models.Model):
                 for item_fee in item_p[4]:
                     item.parse_item(item_fee, 'fee')
                 if len(item_p) > 5:
-                    for cont in range(5, len(item_p)):
+                    for cont in range(5, len(item_p)-1):
                         item.parse_item(item_p[cont], 'promotion')
         return line
 
