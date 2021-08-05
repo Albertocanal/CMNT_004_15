@@ -47,12 +47,12 @@ class AccountInvoice(models.Model):
             i_line = self.env['account.invoice.line'].browse(i_line_id)
             fpos = i_line.invoice_id.fiscal_position_id
             # get the price difference account at the product
-            acc = i_line.product_id.property_account_creditor_price_difference
+            acc = i_line.product_id.categ_id.\
+                    property_account_creditor_price_difference_categ
             if not acc:
                 # if not found on the product get the price difference
                 # account at the category
-                acc = i_line.product_id.categ_id.\
-                    property_account_creditor_price_difference_categ
+                acc = i_line.product_id.categ_id.property_account_creditor_price_difference_categ
             acc = fpos.map_account(acc).id
             a = i_line.product_id.product_tmpl_id.\
                 get_product_accounts(fiscal_pos=fpos)['stock_input'].id
@@ -67,6 +67,14 @@ class AccountInvoice(models.Model):
                 price_diff = price_subtotal - line['price_purchase']
                 if tools.float_is_zero(price_diff, 2):
                     continue
+                else:
+                    for move in i_line.move_line_ids:
+                        move.write({
+                            'value': move.value + move.product_qty * price_diff,
+                            'remaining_value': move.remaining_value + move.remaining_qty * price_diff,
+                            'price_unit': move.price_unit + price_diff
+                        })
+                        move.product_id.product_tmpl_id.recalculate_standard_price_2()
 
                 diff_res.append({
                     'type': 'src',
@@ -91,3 +99,45 @@ class AccountInvoice(models.Model):
                     'account_analytic_id': line['account_analytic_id']
                     })
         return diff_res
+
+    @api.multi
+    def action_cancel(self):
+        for i_line in self.invoice_line_ids:
+            fpos = i_line.invoice_id.fiscal_position_id
+            # get the price difference account at the product
+            acc = i_line.product_id.property_account_creditor_price_difference
+            if not acc:
+                # if not found on the product get the price difference
+                # account at the category
+                acc = i_line.product_id.categ_id.property_account_creditor_price_difference_categ
+            acc = fpos.map_account(acc).id
+
+            if i_line.move_line_ids and i_line.purchase_line_id \
+                    and i_line.product_id.valuation == 'real_time':
+                if i_line.product_id.cost_method in ['average', 'fifo'] \
+                        and i_line.purchase_line_id.price_unit:
+                    purchase_price = i_line.purchase_line_id.price_unit * i_line.quantity
+                else:
+                    purchase_price = i_line.product_id.standard_price * i_line.quantity
+
+            if i_line.purchase_line_id \
+                    and i_line.purchase_line_id.currency_id.id != i_line.invoice_id.currency_id.id:
+                purchase_price = i_line.purchase_line_id.currency_id.with_context(date=i_line.move_line_ids[0]. \
+                    _get_origin_create_date()).compute(purchase_price, i_line.invoice_id.currency_id, round=True)
+
+            price_subtotal = i_line.price_subtotal
+
+            if i_line.purchase_line_id and acc and tools.float_compare(purchase_price, price_subtotal, 2):
+                price_diff = -(price_subtotal - purchase_price)
+                if tools.float_is_zero(price_diff, 2):
+                    continue
+                else:
+                    for move in i_line.move_line_ids:
+                        move.write({
+                            'value': move.value + move.product_qty * price_diff,
+                            'remaining_value': move.remaining_value + move.remaining_qty * price_diff,
+                            'price_unit': move.price_unit + price_diff
+                        })
+                        move.product_id.product_tmpl_id.recalculate_standard_price_2()
+        return super(AccountInvoice, self).action_cancel()
+
