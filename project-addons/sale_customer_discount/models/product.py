@@ -32,6 +32,8 @@ class ProductTemplate(models.Model):
 
     def recalculate_standard_price_2(self):
         for product in self:
+            import ipdb
+            ipdb.set_trace()
             moves = self.env['stock.move'].search(
                 [('product_id', 'in', product.product_variant_ids._ids),
                 ('remaining_qty', '>', 0)])
