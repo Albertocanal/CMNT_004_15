@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Hide -->
+    <!-- Clientes -> Datos principales -->
+    <record id="account.menu_finance_receivables_master_data" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <!-- Informes -->
+    <record id="account.menu_finance_legal_statement" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <record id="account.account_reports_legal_statements_menu" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <record id="account.account_reports_business_intelligence_menu" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <record id="account.account_reports_management_menu" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <record id="mis_builder.mis_report_finance_menu" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <record id="cyc_view.account_invoice_menu_cyc_old" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <record id="cyc_view.account_invoice_menu_cyc" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <!-- Control de cŕedito -->
+    <record id="account_credit_control.base_credit_control_menu" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <!-- Pagos -->
+    <record id="account_payment_order.payment_root" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <!-- Asientos contables -->
+    <record id="account.menu_finance_entries" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <!-- Previsión de tesorería -->
+    <record id="account_treasury_forecast.menu_account_treasury_forecast" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <!-- Configuración -->
+    <record id="account.menu_finance_configuration" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <!-- Comerciales-->
+    <!-- Análisis de facturas: Proyectos y Grandes cuentas-->
+    <record id="custom_account.account_reports_big_accounts_parent" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('__export__.res_groups_57')])]"/>
+    </record>
+    
+    <!-- Análisis de facturas para Producto -->
+    <record id="custom_account.account_reports_for_product" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('__export__.res_groups_57','custom_account.group_product_manager'))]"/>
+    </record>
+
+    <!-- Análisis de facturas marca -->
+    <!-- <record id="account_invoice_report_filter_brand.menu_action_account_invoice_report_filter" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('__export__.res_groups_57')])]"/>
+    </record> -->
+
+    <!-- Análisis de facturas (contactos) -->
+    <record id="custom_account.menu_action_account_invoice_contact_report" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('__export__.res_groups_57','base.group_system'))]"/>
+    </record>
+
+    <!-- Compras -->
+    <record id="account.menu_action_invoice_tree1" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+    </record>
+
+    <record id="account.menu_action_invoice_out_refund" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+    </record>
+
+    <record id="account.menu_finance_payables_documents" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+    </record>
+
+    <record id="account.menu_action_invoice_tree2" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+    </record>
+
+    <record id="account.menu_action_invoice_in_refund" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+    </record>
+
+    <record id="account.menu_action_account_invoice_report_all" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+    </record>
+
+    <!-- <record id="account.menu_finance_payables" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+    </record> -->
+
+    <!-- <record id="account_payment.menu_account_payment_return_import" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record>
+
+    <record id="account_payment.payment_return_menu" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+    </record> -->
+
+    <!-- Producto -->
+
+    <!-- SAT -->
+
+    <!-- Admin / Contabilidad-->
+
+</odoo>
