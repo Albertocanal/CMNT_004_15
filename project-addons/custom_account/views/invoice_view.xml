@@ -79,11 +79,11 @@
     </record> -->
 
     <!-- Compras -->
-    <record id="account.menu_finance_reports" model="ir.ui.menu">
+    <record id="account.menu_finance_payables" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('purchase.group_purchase_user'))]"/>
     </record>
 
-    <record id="account.menu_finance_payables_documents" model="ir.ui.menu">
+    <record id="account.menu_finance_reports" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('purchase.group_purchase_user'))]"/>
     </record>
 
@@ -129,6 +129,11 @@
     <!-- Análisis de facturas (contactos) -->
     <record id="custom_account.menu_action_account_invoice_contact_report" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('__export__.res_groups_57'))]"/>
+    </record>
+
+    <!-- Declaraciones AEAT -->
+    <record id="l10n_es_aeat.menu_root_aeat" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
     </record>
 
 </odoo>
