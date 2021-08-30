@@ -79,7 +79,7 @@
     </record> -->
 
     <!-- Compras -->
-    <record id="account.menu_finance_payables" model="ir.ui.menu">
+    <record id="account.menu_finance_receivables_documents" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('purchase.group_purchase_user'))]"/>
     </record>
 
