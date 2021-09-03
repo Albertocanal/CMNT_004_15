@@ -119,6 +119,13 @@ msgid "Customer situation"
 msgstr "Situación del cliente"
 
 #. module: sale_custom
+#: model:ir.actions.act_window,name:sale_custom.deposits
+#: model:ir.ui.view,arch_db:sale_custom.sale_order_view_buttons_add_followup
+#: model:ir.ui.view,arch_db:sale_custom.view_deposit_tree_sale
+msgid "Deposits"
+msgstr "Depósitos"
+
+#. module: sale_custom
 #: code:addons/sale_custom/models/sale.py:120
 #, python-format
 msgid "The address is incorrect, the following fields are empty:\n"
