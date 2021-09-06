@@ -502,4 +502,7 @@ msgstr "Spedizioniere"
 #: model:ir.ui.view,arch_db:custom_partner.res_partner_view_buttons_add_products_no
 msgid "Invoice Pending Sales"
 msgstr "Ordini in attesa di fatturazione"
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8e20bccb0f2c1f5125a94e010697cdb9d81efa4b
