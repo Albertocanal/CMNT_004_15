@@ -265,21 +265,21 @@
 
     <record model="ir.ui.view" id="view_deposit_tree_sale">
         <field name="name">Deposits</field>
-        <field name="model">stock.picking</field>
+        <field name="model">stock.deposit</field>
         <field name="arch" type="xml">
-            <tree string="Deposits" editable="bottom" create="false" delete="false" 
-                decoration-danger="state not in ('cancel', 'done') and scheduled_date &lt; current_date">
-                <field name="name"/>
-                <field name="location_dest_id" groups="stock.group_stock_multi_locations"/>
-                <field name="partner_id"/>
-                <field name="date" invisible="1"/>
-                <field name="scheduled_date"/>
-                <field name="origin"/>
-                <field name="group_id" invisible="1"/>
-                <field name="backorder_id"/>
-                <field name="state"/>
-                <field name="priority" invisible="1"/>
-                <field name="picking_type_id" invisible="1"/>
+            <tree string="Deposits" editable="bottom" create="false" delete="false" >
+                <field name="product_id" />
+                <field name="partner_id" />
+                <field name="picking_id" />
+                <field name="sale_id" />
+                <field name="invoice_id" />
+                <field name="user_id"/>
+                <field name="product_uom_qty" sum="Total" />
+                <field name="product_uom" />
+                <!-- TODO: Migrar <field name="cost_subtotal" sum="Total cost"/> -->
+                <field name="delivery_date" />
+                <field name="return_date" />
+                <field name="state" />
             </tree>
         </field>
     </record>
@@ -296,11 +296,11 @@
 
     <record model="ir.actions.act_window" id="deposits">
         <field name="name">Deposits</field>
-        <field name="res_model">stock.picking</field>
+        <field name="res_model">stock.deposit</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree</field>
         <field name="view_id" ref="view_deposit_tree_sale"/>
-        <field name="domain">[('picking_type_id','=', 6)]</field>
+        <field name="domain">[('sale_id','=',active_id)]</field>
     </record>
 
     <record id="sale_order_view_buttons_add_followup" model="ir.ui.view">
