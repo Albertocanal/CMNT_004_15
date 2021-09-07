@@ -309,3 +309,16 @@ class PushedFlow(models.Model):
     def _apply(self, move):
         if not self.apply_at_finish or (self.apply_at_finish and move.state == 'done'):
             super()._apply(move)
+
+class Picking(models.Model):
+    _inherit = "stock.picking"
+
+    @api.multi
+    def button_validate(self):
+        res = super(Picking, self).button_validate()
+        for order_line in self.sale_id.order_line:
+            order_line.write({
+                'invoice_status': 'deposit'
+            })
+            
+        return res

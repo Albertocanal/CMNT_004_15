@@ -14,6 +14,8 @@ class SaleOrderLine(models.Model):
 
     is_editable = fields.Boolean(compute='_get_is_editable', default=True)
 
+    invoice_status = fields.Selection(selection_add=[('deposit', 'Deposit')])
+
     @api.multi
     def _get_is_editable(self):
         products_non_editable = self._get_products_non_editable()
