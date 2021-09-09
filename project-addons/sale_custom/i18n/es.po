@@ -126,6 +126,12 @@ msgid "Deposits"
 msgstr "Depósitos"
 
 #. module: sale_custom
+#: selection:sale.order,invoice_status:0
+#: selection:sale.order.line,invoice_status:0
+msgid "Deposit"
+msgstr "Depósito"
+
+#. module: sale_custom
 #: code:addons/sale_custom/models/sale.py:120
 #, python-format
 msgid "The address is incorrect, the following fields are empty:\n"
