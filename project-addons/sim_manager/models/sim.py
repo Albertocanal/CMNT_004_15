@@ -35,37 +35,71 @@ class SimPackage(models.Model):
 
     def _get_serials(self):
         for pkg in self:
-            pkg.sim_1 = pkg.serial_ids[0].code
-            pkg.sim_2 = pkg.serial_ids[1].code
-            pkg.sim_3 = pkg.serial_ids[2].code
-            pkg.sim_4 = pkg.serial_ids[3].code
-            pkg.sim_5 = pkg.serial_ids[4].code
-            pkg.sim_6 = pkg.serial_ids[5].code
-            pkg.sim_7 = pkg.serial_ids[6].code
-            pkg.sim_8 = pkg.serial_ids[7].code
-            pkg.sim_9 = pkg.serial_ids[8].code
-            pkg.sim_10 = pkg.serial_ids[9].code
-
+            serials = [s.code for s in pkg.serial_ids]
+            serials += [False for x in range(10-len(serials))]
+            pkg.sim_1 = serials[0]
+            pkg.sim_2 = serials[1]
+            pkg.sim_3 = serials[2]
+            pkg.sim_4 = serials[3]
+            pkg.sim_5 = serials[4]
+            pkg.sim_6 = serials[5]
+            pkg.sim_7 = serials[6]
+            pkg.sim_8 = serials[7]
+            pkg.sim_9 = serials[8]
+            pkg.sim_10 = serials[9]
 
     def create_sims_using_barcode(self, barcode):
         logger.info("Imported SIM %s" % barcode)
+        max_cards = int(self.env['ir.config_parameter'].sudo().get_param('package.sim.card.max'))
 
         created_code = self.env['sim.package'].search([], order="create_date desc", limit=1)
-        sim_serial = self.env['sim.serial'].create({'code': barcode, 'package_id': created_code.id})
-        if sim_serial:
-            message = _("{} created").format(sim_serial.code)
-            self.env.user.notify_info(message=message)
+        if len(created_code.serial_ids) < max_cards:
+            sim_serial = self.env['sim.serial'].create({'code': barcode, 'package_id': created_code.id})
+            if sim_serial:
+                message = _("{} created").format(sim_serial.code)
+                self.env.user.notify_info(message=message)
 
-        action = self.env.ref('sim_manager.action_sim_package_creator_scan')
-        result = action.read()[0]
+            action = self.env.ref('sim_manager.action_sim_package_creator_scan')
+            result = action.read()[0]
 
-        context = safe_eval(result['context'])
-        context.update({
-            'default_state': 'waiting',
-            'default_status': _('Scan the serials for %s') % created_code.code,
-            'default_res_id': created_code.id,
-        })
-        result['context'] = json.dumps(context)
+            if len(created_code.serial_ids) == max_cards: #TODO: PARAMETRIZAR
+                # We reach the maximum serials per package
+                context = safe_eval(result['context'])
+                context.update({
+                    'default_state': 'warning',
+                    'default_status': _('Package %s finished. Scan for continue with next package') % created_code.code,
+                    'default_res_id': created_code.id,
+                })
+                result['context'] = json.dumps(context)
+            else:
+                context = safe_eval(result['context'])
+                context.update({
+                    'default_state': 'waiting',
+                    'default_status': _('Scan the #%s serial for %s') % (len(created_code.serial_ids) + 1, created_code.code),
+                    'default_res_id': created_code.id,
+                })
+                result['context'] = json.dumps(context)
+        elif len(created_code.serial_ids) == max_cards:
+            # Create the next package and return to scan all the codes
+            new_code = 'M2M_CARD_' + created_code.code.split('_')[-2] + '_' \
+                       + str(int(created_code.code.split('_')[-1])+1).zfill(6)
+            pkg = self.env['sim.package'].create({'code': new_code})
+
+            sim_serial = self.env['sim.serial'].create({'code': barcode, 'package_id': pkg.id})
+            if sim_serial:
+                message = _("{} created").format(sim_serial.code)
+                self.env.user.notify_info(message=message)
+
+            action = self.env.ref('sim_manager.action_sim_package_creator_scan')
+            result = action.read()[0]
+
+            context = safe_eval(result['context'])
+            context.update({
+                'default_state': 'waiting',
+                'default_status': _('Scan the #%s serial for %s') % (len(pkg.serial_ids) + 1, pkg.code),
+                'default_res_id': pkg.id,
+            })
+            result['context'] = json.dumps(context)
 
         return result
 
