@@ -1,7 +1,9 @@
-from odoo import models, fields, _
+from odoo import models, fields, api, _
 from odoo.tools.safe_eval import safe_eval
 import json
 import logging
+from odoo.addons.queue_job.job import job
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +17,7 @@ class SimPackage(models.Model):
     serial_ids = fields.One2many('sim.serial', 'package_id', string='Cards')
     partner_id = fields.Many2one('res.partner', string='Sold to')
     move_id = fields.Many2one('stock.move')
+    sale_id = fields.Many2one('sale.order', compute='_get_sale_order')
     state = fields.Selection(string='State',
                              default='available',
                              selection=[('available', 'Available'),
@@ -48,11 +51,16 @@ class SimPackage(models.Model):
             pkg.sim_9 = serials[8]
             pkg.sim_10 = serials[9]
 
+    @api.multi
+    def _get_sale_order(self):
+        for pkg in self:
+            pkg.sale_id = pkg.move_id.sale_line_id.order_id
+
     def create_sims_using_barcode(self, barcode):
         logger.info("Imported SIM %s" % barcode)
         max_cards = int(self.env['ir.config_parameter'].sudo().get_param('package.sim.card.max'))
 
-        created_code = self.env['sim.package'].search([], order="create_date desc", limit=1)
+        created_code = self.env['sim.package'].search([], order="code desc", limit=1)
         if len(created_code.serial_ids) < max_cards:
             sim_serial = self.env['sim.serial'].create({'code': barcode, 'package_id': created_code.id})
             if sim_serial:
@@ -62,7 +70,7 @@ class SimPackage(models.Model):
             action = self.env.ref('sim_manager.action_sim_package_creator_scan')
             result = action.read()[0]
 
-            if len(created_code.serial_ids) == max_cards: #TODO: PARAMETRIZAR
+            if len(created_code.serial_ids) == max_cards:
                 # We reach the maximum serials per package
                 context = safe_eval(result['context'])
                 context.update({
@@ -81,8 +89,11 @@ class SimPackage(models.Model):
                 result['context'] = json.dumps(context)
         elif len(created_code.serial_ids) == max_cards:
             # Create the next package and return to scan all the codes
-            new_code = 'M2M_CARD_' + created_code.code.split('_')[-2] + '_' \
-                       + str(int(created_code.code.split('_')[-1])+1).zfill(6)
+            if 'EU' in created_code or 'VIP' in created_code:
+                new_code = 'M2M_CARD_' + created_code.code.split('_')[-2] + '_' \
+                           + str(int(created_code.code.split('_')[-1])+1).zfill(6)
+            else:
+                new_code = 'M2M_CARD_' + str(int(created_code.code.split('_')[-1]) + 1).zfill(6)
             pkg = self.env['sim.package'].create({'code': new_code})
 
             sim_serial = self.env['sim.serial'].create({'code': barcode, 'package_id': pkg.id})
@@ -102,6 +113,21 @@ class SimPackage(models.Model):
             result['context'] = json.dumps(context)
 
         return result
+
+    @job(retry_pattern={1: 10 * 60, 2: 20 * 60, 3: 30 * 60, 4: 40 * 60, 5: 50 * 60})
+    @api.multi
+    def notify_sale_web(self, mode):
+        web_endpoint = self.env['ir.config_parameter'].sudo().get_param('web.sim.endpoint')
+        for package in self:
+            data = {
+                "odoo_id": package.partner_id.id,
+                "partner_name": package.partner_id.name,
+                "mode": mode,
+                "codes": [sim.code for sim in package.serial_ids],
+            }
+            api_key = self.env['ir.config_parameter'].sudo().get_param('web.sim.endpoint.key')
+            headers = {'x-api-key': api_key}
+            response = requests.post(web_endpoint, headers=headers, data=json.dumps({"data": data}))
 
 
 class SimSerial(models.Model):
