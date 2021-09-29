@@ -506,3 +506,4 @@ class CrmClaimLine(models.Model):
         if claims:
             claims.resequence()
         return True
+
