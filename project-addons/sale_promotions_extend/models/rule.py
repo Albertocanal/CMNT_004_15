@@ -177,10 +177,12 @@ class PromotionsRulesActions(models.Model):
             ('tag_disc_perc_line',
              _('New discount line per product with tag')),
             ('change_pricelist_category',
-             _('Change pricelist price category'))
+             _('Change pricelist price category')),
+            ('brand_disc_perc_accumulated_reverse',
+             _('Discount % on not Brand accumulated')),
             ])
 
-
+    @api.onchange('action_type')
     def on_change(self):
         if self.action_type == 'prod_disc_perc_accumulated':
             self.product_code = 'product_code'
@@ -198,7 +200,7 @@ class PromotionsRulesActions(models.Model):
 
         elif self.action_type in [
                 'brand_disc_perc', 'brand_disc_perc_accumulated',
-                'brand_price_disc_accumulated']:
+                'brand_price_disc_accumulated', 'brand_disc_perc_accumulated_reverse']:
             self.product_code = 'brand_code'
             self.arguments = '0.00'
 
@@ -445,6 +447,7 @@ class PromotionsRulesActions(models.Model):
         if points <= price_subtotal:
             self.create_y_line_sale_points_programme(order, points,bags)
             bags.write({'applied_state':'applied', 'order_applied_id':order.id})
+            bag_obj.with_delay(priority=11, eta=10).recalculate_partner_point_bag_accumulated(rules, order.partner_id)
         else:
             bags_to_change_status = self.env['res.partner.point.programme.bag']
             cont_point_applied = 0
@@ -469,6 +472,7 @@ class PromotionsRulesActions(models.Model):
                     bags_to_change_status += bag
             bags_to_change_status.write({'applied_state': 'applied', 'order_applied_id': order.id})
             self.create_y_line_sale_points_programme(order, price_subtotal,bags_to_change_status)
+            bag_obj.with_delay(priority=11, eta=10).recalculate_partner_point_bag_accumulated(bags_to_change_status.mapped('point_rule_id'), order.partner_id)
 
         return True
 
@@ -616,6 +620,13 @@ class PromotionsRulesActions(models.Model):
                                                                                                             pricelist.currency_id)
         # negative discounts (= surcharge) are included in the display price
         return max(base_price, final_price)
+
+    def action_brand_disc_perc_accumulated_reverse(self, order):
+        for order_line in order.order_line:
+            if eval(self.product_code) != \
+                    order_line.product_id.product_brand_id.code and order_line.product_id.type == 'product':
+                self.apply_perc_discount_accumulated(order_line)
+        return {}
 
 
 class PromotionsRules(models.Model):
