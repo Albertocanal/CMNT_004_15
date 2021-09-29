@@ -66,11 +66,11 @@
     <!-- Comerciales-->
     <!-- Informes | Informes -->
     <record id="custom_account.account_reports_for_product" model="ir.ui.menu">
-        <field name="groups_id" eval="[(4, ref('__export__.res_groups_57'))]"/>
+        <field name="groups_id" eval="[(4, ref('stock_custom.commercial_group'))]"/>
     </record>
 
     <record id="custom_account.account_reports_big_accounts" model="ir.ui.menu">
-        <field name="groups_id" eval="[(4, ref('__export__.res_groups_57'))]"/>
+        <field name="groups_id" eval="[(4, ref('stock_custom.commercial_group'))]"/>
     </record>
 
     <!-- Análisis de facturas marca -->
@@ -128,7 +128,7 @@
 
     <!-- Análisis de facturas (contactos) -->
     <record id="custom_account.menu_action_account_invoice_contact_report" model="ir.ui.menu">
-        <field name="groups_id" eval="[(4, ref('__export__.res_groups_57'))]"/>
+        <field name="groups_id" eval="[(4, ref('stock_custom.commercial_group'))]"/>
     </record>
 
     <!-- Declaraciones AEAT -->
