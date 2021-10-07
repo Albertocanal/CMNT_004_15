@@ -316,9 +316,14 @@ class StockImmediateTransfer(models.TransientModel):
     pick_ids = fields.Many2many('stock.picking', 'stock_picking_transfer_rel')
 
     def process(self):
-        super(StockImmediateTransfer, self).process()
         for picking in self.pick_ids:
-            for order_line in picking.sale_id.order_line:
-                order_line.write({
-                    'invoice_status': 'deposit'
+            if any(order_line.deposit for order_line in picking.sale_id.order_line):
+
+                for o_line in picking.sale_id.order_line:
+                    o_line.write({
+                        'invoice_status': 'deposit'
+                    })
+                picking.sale_id.write({
+                    'invoice_status': 'to invoice'
                 })
+        super(StockImmediateTransfer, self).process()

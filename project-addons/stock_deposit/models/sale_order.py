@@ -68,12 +68,12 @@ class SaleOrder(models.Model):
         for sale in self:
             sale.deposit_count = len(sale.deposit_ids)
 
-    @api.multi
-    def action_confirm(self):
-        res = super().action_confirm()
-        if isinstance(res, bool):
-            for line in self.order_line:
-                if line.deposit:
-                    line.qty_invoiced = line.product_uom_qty
-                    line.invoice_status = 'invoiced'
-        return res
+    # @api.multi
+    # def action_confirm(self):
+    #     res = super().action_confirm()
+    #     if isinstance(res, bool):
+    #         for line in self.order_line:
+    #             if line.deposit:
+    #                 line.qty_invoiced = line.product_uom_qty
+    #                 # line.invoice_status = 'invoiced'
+    #     return res
