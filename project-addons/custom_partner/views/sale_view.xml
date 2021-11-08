@@ -48,5 +48,17 @@
             </field>
         </record>
 
+        <record id="sale.sales_team_config" model="ir.ui.menu">
+            <field name="groups_id" eval="[(3, ref('stock_custom.group_comercial_ext'))]"/>
+        </record>
+
+        <record id="sale.report_all_channels_sales" model="ir.ui.menu">
+            <field name="groups_id" eval="[(3, ref('stock_custom.group_comercial_ext'))]"/>
+        </record>
+
+        <record id="sale_display_stock.sale_order_line_report_menu" model="ir.ui.menu">
+            <field name="groups_id" eval="[(3, ref('stock_custom.group_comercial_ext'))]"/>
+        </record>
+
     </data>
 </openerp>
