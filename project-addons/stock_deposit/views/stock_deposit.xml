@@ -26,6 +26,10 @@
                         string="Revert Invoice"
                         class="oe_highlight"
                         states="invoiced"/>
+                    <button name="send_to_damaged" type="object"
+                        string="Sent to Damaged"
+                        class="oe_highlight"
+                        states="draft"/>
                     <!--<button name="%(stock_deposit.stock_invoice_deposit_action)d" type="action"
                         string="Invoice"
                         class="oe_highlight"
@@ -59,6 +63,10 @@
                                 <field name="sale_picking_id"/>
                                 <field name="return_picking_id" />
                                 <field name="loss_picking_id" />
+                                <field name="damaged_move_id" />
+                                <field name="damaged_picking_id"/>
+                                <field name="rma_move_id" />
+                                <field name="rma_picking_id" />
                              </group>
                             <group name="dates_grp" string="Dates">
                                 <field name="delivery_date" />

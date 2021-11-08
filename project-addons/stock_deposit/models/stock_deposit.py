@@ -61,7 +61,8 @@ class StockDeposit(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('sale', 'Sale'),
                               ('returned', 'Returned'),
                               ('invoiced', 'Invoiced'),
-                              ('loss', 'Loss')], 'State',
+                              ('loss', 'Loss'),
+                              ('damaged','Damaged')], 'State',
                              readonly=True, required=True)
     sale_move_id = fields.Many2one('stock.move', 'Sale Move', required=False,
                                    readonly=True, ondelete='cascade', index=1)
@@ -80,6 +81,18 @@ class StockDeposit(models.Model):
                               readonly=False, ondelete='cascade', index=1)
     # cost_subtotal = fields.Float('Cost', related='move_id.cost_subtotal',
     #                              store=True, readonly=True) TODO:Migrar.
+
+    damaged_move_id = fields.Many2one('stock.move', 'Move to damaged location', required=False,
+                                   readonly=True, ondelete='cascade', index=1)
+    damaged_picking_id = fields.Many2one(related='damaged_move_id.picking_id',
+                                      string='Damaged Picking',
+                                      readonly=True)
+
+    rma_move_id = fields.Many2one('stock.move', 'Move to RMA location', required=False,
+                                      readonly=True, ondelete='cascade', index=1)
+    rma_picking_id = fields.Many2one(related='rma_move_id.picking_id',
+                                         string='RMA Picking',
+                                         readonly=True)
 
     @api.multi
     def sale(self):
@@ -323,4 +336,66 @@ class StockDeposit(models.Model):
                 deposit.invoice_id.action_invoice_cancel()
                 deposit.invoice_id = False
                 deposit.revert_sale()
+
+
+    @api.multi
+    def send_to_damaged(self):
+        move_obj = self.env['stock.move']
+        picking_type_out_id = self.env.ref('stock.picking_type_out')
+        location_damaged = self.env.ref('location_moves.stock_location_damaged')
+        location_rma = self.env.ref('crm_rma_advance_location.stock_location_rma')
+        for deposit in self:
+            picking_rma = self.env['stock.picking'].create(
+                {'picking_type_id': picking_type_out_id.id,
+                 'partner_id': deposit.partner_id.id,
+                 'origin': deposit.sale_id.name,
+                 'date_done': datetime.now(),
+                 'commercial': deposit.user_id.id,
+                 'group_id': deposit.move_id.group_id.id,
+                 'location_id': deposit.move_id.location_dest_id.id,
+                 'location_dest_id': location_rma.id,
+                 'not_sync':True})
+            values = {
+                'product_id': deposit.product_id.id,
+                'product_uom_qty': deposit.product_uom_qty,
+                'product_uom': deposit.product_uom.id,
+                'partner_id': deposit.partner_id.id,
+                'name': 'Damaged Deposit: ' + deposit.move_id.name,
+                'location_id': deposit.move_id.location_dest_id.id,
+                'location_dest_id': location_rma.id,
+                'picking_id': picking_rma.id,
+                'commercial': deposit.user_id.id,
+                'group_id': deposit.move_id.group_id.id
+            }
+            move_out = move_obj.create(values)
+            move_out._action_confirm()
+            deposit.rma_move_id=move_out.id
+            picking_rma.action_assign()
+            picking_damaged = self.env['stock.picking'].create(
+                {'picking_type_id': picking_type_out_id.id,
+                 'partner_id': deposit.partner_id.id,
+                 'origin': deposit.sale_id.name,
+                 'date_done': datetime.now(),
+                 'commercial': deposit.user_id.id,
+                 'group_id': deposit.move_id.group_id.id,
+                 'location_id': location_rma.id,
+                 'location_dest_id': location_damaged.id,
+                 'not_sync':True})
+            values = {
+                'product_id': deposit.product_id.id,
+                'product_uom_qty': deposit.product_uom_qty,
+                'product_uom': deposit.product_uom.id,
+                'partner_id': deposit.partner_id.id,
+                'name': 'Damaged Deposit: ' + deposit.move_id.name,
+                'location_id': location_rma.id,
+                'location_dest_id': location_damaged.id,
+                'picking_id': picking_damaged.id,
+                'commercial': deposit.user_id.id,
+                'group_id': deposit.move_id.group_id.id
+            }
+            move_damaged = move_obj.create(values)
+            move_damaged._action_confirm()
+            deposit.damaged_move_id=move_damaged.id
+            deposit.state='damaged'
+
 

@@ -429,3 +429,33 @@ msgstr "Ripristina fatturato"
 #, python-format
 msgid "This deposit has invoices in non-draft status, please check it before reverting it"
 msgstr "Questo deposito ha fatture in stato di non bozza, controllalo prima di ripristinarlo"
+
+#. module: stock_deposit
+#: model:ir.model.fields,field_description:stock_deposit.field_stock_deposit_rma_picking_id
+msgid "RMA Picking"
+msgstr "Bolla di consegna a RMA"
+
+#. module: stock_deposit
+#: model:ir.model.fields,field_description:stock_deposit.field_stock_deposit_damaged_picking_id
+msgid "Damaged Picking"
+msgstr "Bolla di consegna a Danneggiato"
+
+#. module: stock_deposit
+#: model:ir.model.fields,field_description:stock_deposit.field_stock_deposit_damaged_move_id
+msgid "Move to damaged location"
+msgstr "Movimento a danneggiato"
+
+#. module: stock_deposit
+#: model:ir.model.fields,field_description:stock_deposit.field_stock_deposit_rma_move_id
+msgid "Move to RMA location"
+msgstr "Movimento a RMA"
+
+#. module: stock_deposit
+#: model:ir.ui.view,arch_db:stock_deposit.view_stock_deposit_form
+msgid "Sent to Damaged"
+msgstr "Invia a danneggiato"
+
+#. module: stock_deposit
+#: selection:stock.deposit,state:0
+msgid "Damaged"
+msgstr "Danneggiato"
