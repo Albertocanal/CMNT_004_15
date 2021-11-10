@@ -452,6 +452,8 @@ msgstr "Movimento a RMA"
 
 #. module: stock_deposit
 #: model:ir.ui.view,arch_db:stock_deposit.view_stock_deposit_form
+#: model:ir.ui.view,arch_db:stock_deposit.damaged_deposit_action
+#: model:ir.ui.view,arch_db:stock_deposit.damaged_deposit_form
 msgid "Sent to Damaged"
 msgstr "Invia a danneggiato"
 

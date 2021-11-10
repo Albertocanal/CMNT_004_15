@@ -30,6 +30,6 @@
               'wizard/stock_return_deposit.xml', 'wizard/stock_loss_deposit.xml',
               'views/stock_data.xml', 'views/stock_deposit.xml', 'views/res_partner_view.xml',
               'security/ir.model.access.csv', 'views/sale_view.xml',
-              'data/stock_deposit_data.xml'],
+              'data/stock_deposit_data.xml','wizard/damaged_deposit.xml'],
     'installable': True
 }

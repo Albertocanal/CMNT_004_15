@@ -27,7 +27,7 @@
                         class="oe_highlight"
                         states="invoiced"/>
                     <button name="send_to_damaged" type="object"
-                        string="Sent to Damaged"
+                        string="Send to Damaged"
                         class="oe_highlight"
                         states="draft"/>
                     <!--<button name="%(stock_deposit.stock_invoice_deposit_action)d" type="action"
