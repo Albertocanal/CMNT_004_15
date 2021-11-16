@@ -221,7 +221,7 @@
         <field name="name">stock.container.tree</field>
         <field name="model">stock.container</field>
         <field name="arch" type="xml">
-            <tree string="Containers" class="custom_tree" default_order="eta desc set_eta">
+            <tree string="Containers" class="custom_tree">
                 <field name="set_eta" invisible="1"/>
                 <field name="name"/>
                 <field name="type"/>
