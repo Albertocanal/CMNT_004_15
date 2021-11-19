@@ -47,13 +47,13 @@ class SaleOrderLine(models.Model):
         else:
             self.deposit_date = False
 
-    @api.multi
-    def invoice_line_create(self, invoice_id, qty):
-        lines = self.env['sale.order.line']
-        for line in self:
-            if not line.deposit or self.env.context.get('invoice_deposit', False):
-                lines += line
-        return super(SaleOrderLine, lines).invoice_line_create(invoice_id, qty)
+    # @api.multi
+    # def invoice_line_create(self, invoice_id, qty):
+    #     lines = self.env['sale.order.line']
+    #     for line in self:
+    #         if not line.deposit or self.env.context.get('invoice_deposit', False):
+    #             lines += line
+    #     return super(SaleOrderLine, lines).invoice_line_create(invoice_id, qty)
 
 
 class SaleOrder(models.Model):
@@ -68,15 +68,15 @@ class SaleOrder(models.Model):
         for sale in self:
             sale.deposit_count = len(sale.deposit_ids)
 
-    @api.multi
-    def action_confirm(self):
-        res = super().action_confirm()
-        if isinstance(res, bool):
-            for line in self.order_line:
-                if line.deposit:
-                    line.qty_invoiced = line.product_uom_qty
-                    line.invoice_status = 'invoiced'
-        return res
+    # @api.multi
+    # def action_confirm(self):
+    #     res = super().action_confirm()
+    #     if isinstance(res, bool):
+    #         for line in self.order_line:
+    #             if line.deposit:
+    #                 line.qty_invoiced = line.product_uom_qty
+    #                 line.invoice_status = 'invoiced'
+    #     return res
 
 class SaleAdvancePaymentInv(models.TransientModel):
     _inherit = 'sale.advance.payment.inv'
@@ -87,8 +87,8 @@ class SaleAdvancePaymentInv(models.TransientModel):
         for order in sale_orders:
             if any(order_line.deposit for order_line in order.order_line):
                 for order_line in order.order_line:
-                    order_line.invoice_status = 'to invoice'
-
-        # import ipdb
-        # ipdb.set_trace()
+                    if order_line.product_id.type == 'product':
+                        order_line.invoice_status = 'no'
+                    elif order_line.product_id.type == 'service':
+                        order_line.invoice_status = 'to invoice'
         return super().create_invoices()
