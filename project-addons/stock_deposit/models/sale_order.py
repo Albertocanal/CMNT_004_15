@@ -77,18 +77,3 @@ class SaleOrder(models.Model):
     #                 line.qty_invoiced = line.product_uom_qty
     #                 line.invoice_status = 'invoiced'
     #     return res
-
-class SaleAdvancePaymentInv(models.TransientModel):
-    _inherit = 'sale.advance.payment.inv'
-
-    def create_invoices(self):
-        sale_orders = self.env['sale.order'].browse(
-            self._context.get('active_ids', []))
-        for order in sale_orders:
-            if any(order_line.deposit for order_line in order.order_line):
-                for order_line in order.order_line:
-                    if order_line.product_id.type == 'product':
-                        order_line.invoice_status = 'no'
-                    elif order_line.product_id.type == 'service':
-                        order_line.invoice_status = 'to invoice'
-        return super().create_invoices()
