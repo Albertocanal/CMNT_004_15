@@ -261,7 +261,7 @@ class SaleOrder(models.Model):
                     raise exceptions.Warning(message)
 
                 shipping_cost_line = False
-                if self.delivery_type not in ('installations', 'carrier'):
+                if self.delivery_type not in ('installations', 'carrier') and not all(oline.deposit for oline in self.order_line):
                     for line in self.order_line:
                         if line.product_id.categ_id.with_context(lang='es_ES').name == 'Portes':
                             shipping_cost_line = True
