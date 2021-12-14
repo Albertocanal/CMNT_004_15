@@ -322,6 +322,7 @@ class StockDeposit(models.Model):
                 if deposit.invoice_id.state not in ['draft','cancel']:
                     raise UserError(_("This deposit has invoices in non-draft status, please check it before reverting it"))
                 deposit.invoice_id.action_invoice_cancel()
-                deposit.invoice_id = False
+                deposit.invoice_id.unlink()
+                #deposit.invoice_id = False
                 deposit.revert_sale()
 
