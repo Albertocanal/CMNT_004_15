@@ -236,44 +236,49 @@ class StockDeposit(models.Model):
         deposit_obj = self.env['stock.deposit']
         deposits = self.filtered(lambda d:d.state=='sale')
         invoice_ids = []
-        if not deposits:
-            raise exceptions.Warning(_('No deposit selected'))
-        sales = list(set([x.sale_id for x in deposits]))
-        for sale in sales:
-            sale_deposit = deposit_obj.search(
-                [('id', 'in', deposits.ids), ('sale_id', '=', sale.id)])
+        sale_deposits = self.env['stock.deposit'].search([('sale_id','=',self.sale_id.id)])
+        if any(kd.state == 'invoiced' for kd in sale_deposits) and self.sale_id.product_id.is_pack:
+            self.write({'state': 'invoiced'})
+            return []
+        else:
+            if not deposits:
+                raise exceptions.Warning(_('No deposit selected'))
+            sales = list(set([x.sale_id for x in deposits]))
+            for sale in sales:
+                sale_deposit = deposit_obj.search(
+                    [('id', 'in', deposits.ids), ('sale_id', '=', sale.id)])
 
-            sale_lines = sale_deposit.mapped('move_id.sale_line_id')
-            my_context = dict(self.env.context)
-            my_context['invoice_deposit'] = True
-            inv_vals = sale._prepare_invoice()
-            if self.env.context.get('force_partner_id',False):
-                partner_id = self.env.context.get('force_partner_id')
-                inv_vals['partner_id'] = partner_id.id
-                inv_vals['partner_shipping_id'] = partner_id.id
-                inv_vals['payment_term_id'] = \
-                    partner_id.property_payment_term_id.id
-            else:
-                partner_id = sale.partner_id
-            inv_vals['journal_id'] = journal_id.id if journal_id else partner_id.commercial_partner_id.invoice_type_id.journal_id.id
-            if not inv_vals.get("payment_term_id", False):
-                inv_vals['payment_term_id'] = \
-                    partner_id.property_payment_term_id.id
-            if not inv_vals.get("payment_mode_id", False):
-                inv_vals['payment_mode_id'] = \
-                    partner_id.customer_payment_mode_id.id
-            if not inv_vals.get("partner_bank_id", False):
-                inv_vals['partner_bank_id'] = partner_id.bank_ids \
-                    and partner_id.bank_ids[0].id or False
-            invoice = self.env['account.invoice'].create(inv_vals)
-            for line in sale_lines:
-                deposit = self.filtered(lambda d: d.move_id.sale_line_id.id==line.id)
-                line.with_context(my_context).invoice_line_create(invoice.id, sum(deposit.mapped('product_uom_qty')))
-                line.qty_invoiced=line.product_qty
-            invoice_ids.append(invoice.id)
-            sale_deposit.write({'invoice_id': invoice.id})
-            invoice.compute_taxes()
-        deposits.write({'state': 'invoiced'})
+                sale_lines = sale_deposit.mapped('move_id.sale_line_id')
+                my_context = dict(self.env.context)
+                my_context['invoice_deposit'] = True
+                inv_vals = sale._prepare_invoice()
+                if self.env.context.get('force_partner_id',False):
+                    partner_id = self.env.context.get('force_partner_id')
+                    inv_vals['partner_id'] = partner_id.id
+                    inv_vals['partner_shipping_id'] = partner_id.id
+                    inv_vals['payment_term_id'] = \
+                        partner_id.property_payment_term_id.id
+                else:
+                    partner_id = sale.partner_id
+                inv_vals['journal_id'] = journal_id.id if journal_id else partner_id.commercial_partner_id.invoice_type_id.journal_id.id
+                if not inv_vals.get("payment_term_id", False):
+                    inv_vals['payment_term_id'] = \
+                        partner_id.property_payment_term_id.id
+                if not inv_vals.get("payment_mode_id", False):
+                    inv_vals['payment_mode_id'] = \
+                        partner_id.customer_payment_mode_id.id
+                if not inv_vals.get("partner_bank_id", False):
+                    inv_vals['partner_bank_id'] = partner_id.bank_ids \
+                        and partner_id.bank_ids[0].id or False
+                invoice = self.env['account.invoice'].create(inv_vals)
+                for line in sale_lines:
+                    deposit = self.filtered(lambda d: d.move_id.sale_line_id.id==line.id)
+                    line.with_context(my_context).invoice_line_create(invoice.id, sum(deposit.mapped('product_uom_qty')))
+                    line.qty_invoiced=line.product_qty
+                invoice_ids.append(invoice.id)
+                sale_deposit.write({'invoice_id': invoice.id})
+                invoice.compute_taxes()
+            deposits.write({'state': 'invoiced'})
         return invoice_ids
 
 
