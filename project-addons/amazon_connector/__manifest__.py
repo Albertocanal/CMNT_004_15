@@ -9,6 +9,7 @@
              "data/email.xml",
              "wizard/retry_orders.xml",
              "wizard/create_full_invoices.xml",
+             "wizard/purchase_suggestions_wizard.xml",
              "security/ir.model.access.csv",
              "views/invoice.xml",
              "views/amazon_settlement.xml",

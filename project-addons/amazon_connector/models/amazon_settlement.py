@@ -1,8 +1,8 @@
 from odoo import models, fields, api, _
-from sp_api.api import Orders, Reports
-from sp_api.base import Marketplaces
+#from sp_api.api import Orders, Reports
+#from sp_api.base import Marketplaces
 from datetime import datetime, timedelta
-from sp_api.base.exceptions import SellingApiException, SellingApiRequestThrottledException
+#from sp_api.base.exceptions import SellingApiException, SellingApiRequestThrottledException
 from odoo.exceptions import UserError
 import time
 import xml.etree.ElementTree as ET
