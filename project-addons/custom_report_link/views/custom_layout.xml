@@ -689,6 +689,7 @@ SWIFT/BIC: BESCPTPL
 
 
     <template id="external_layout_custom_invoice">
+        <t t-set="country_code" t-value="env['ir.config_parameter'].sudo().get_param('country_code')"/>
         <t t-if="not o and doc">
             <t t-set="o" t-value="doc"/>
         </t>
@@ -845,47 +846,78 @@ SWIFT/BIC: BESCPTPL
             </div>
             <div class="row">
                 <br/>
-                <div class="pull-left">
-                    <t t-if="o.partner_id.amazon_parent_id">
-                       <address style="font-size:14px; color:#6D6E70" t-field="o.partner_id"
-                             t-options="{'widget': 'contact', 'fields': ['address', 'name', 'phone', 'email'], 'no_marker': false}"/>
-                    </t>
-                    <t t-if="not o.partner_id.amazon_parent_id">
+                <t t-if="country_code == 'ES'"> <!-- Esto es para Odoo España (Amazon) -->
+                    <div class="pull-left">
+                        <t t-if="o.partner_id.amazon_parent_id">
+                        <address style="font-size:14px; color:#6D6E70" t-field="o.partner_id"
+                                t-options="{'widget': 'contact', 'fields': ['address', 'name', 'phone', 'email'], 'no_marker': false}"/>
+                        </t>
+                        <t t-if="not o.partner_id.amazon_parent_id">
+                            <address style="font-size:14px; color:#6D6E70" t-field="o.partner_id.commercial_partner_id"
+                                    t-options="{'widget': 'contact', 'fields': ['address', 'name', 'phone', 'email'], 'no_marker': false}"/>
+                        </t>
+                    </div>
+                    <div class="pull-right text-right">
+                        <br/>
+                        <t t-if="o.date_invoice">
+                            <div style="font-size:14px; font-weight: bold; color:#da1f2e">Date:
+                                <span style="font-weight: normal; color:#6D6E70" t-field="o.date_invoice"
+                                    t-options='{"format": "dd/MM/yyyy"}'/>
+                            </div>
+                        </t>
+                        <t t-if="o.number">
+                            <div style="font-size:14px; font-weight: bold; color:#da1f2e">Invoice:
+                                <strong style="color:#6D6E70" t-field="o.number"/>
+                            </div>
+                        </t>
+                        <t t-if="o.partner_id.amazon_parent_id and o.partner_id.vat">
+                            <div style="font-size:14px; font-weight: bold; color:#da1f2e">C.I.F.:
+                                <span style="font-weight: normal; color:#6D6E70"
+                                    t-field="o.partner_id.vat"/>
+                            </div>
+                        </t>
+                        <t t-if="not o.partner_id.amazon_parent_id and o.partner_id.commercial_partner_id.vat">
+                            <div style="font-size:14px; font-weight: bold; color:#da1f2e">C.I.F.:
+                                <span style="font-weight: normal; color:#6D6E70"
+                                    t-field="o.partner_id.commercial_partner_id.vat"/>
+                            </div>
+                        </t>
+                        <t t-if="o.type == 'out_refund' and o.claim_id">
+                            <div style="font-size:14px; font-weight: bold; color:#da1f2e">Claim:
+                                <span style="font-weight: normal; color:#6D6E70" t-field="o.claim_id"/>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <t t-if="country_code != 'ES'">
+                    <div class="pull-left">
                         <address style="font-size:14px; color:#6D6E70" t-field="o.partner_id.commercial_partner_id"
-                                 t-options="{'widget': 'contact', 'fields': ['address', 'name', 'phone', 'email'], 'no_marker': false}"/>
-                    </t>
-                </div>
-                <div class="pull-right text-right">
-                    <br/>
-                    <t t-if="o.date_invoice">
-                        <div style="font-size:14px; font-weight: bold; color:#da1f2e">Date:
-                            <span style="font-weight: normal; color:#6D6E70" t-field="o.date_invoice"
-                                  t-options='{"format": "dd/MM/yyyy"}'/>
-                        </div>
-                    </t>
-                    <t t-if="o.number">
-                        <div style="font-size:14px; font-weight: bold; color:#da1f2e">Invoice:
-                            <strong style="color:#6D6E70" t-field="o.number"/>
-                        </div>
-                    </t>
-                    <t t-if="o.partner_id.amazon_parent_id and o.partner_id.vat">
+                                t-options="{'widget': 'contact', 'fields': ['address', 'name', 'phone', 'email'], 'no_marker': false}"/>
+                    </div>
+                    <div class="pull-right text-right">
+                        <br/>
+                        <t t-if="o.date_invoice">
+                            <div style="font-size:14px; font-weight: bold; color:#da1f2e">Date:
+                                <span style="font-weight: normal; color:#6D6E70" t-field="o.date_invoice"
+                                    t-options='{"format": "dd/MM/yyyy"}'/>
+                            </div>
+                        </t>
+                        <t t-if="o.number">
+                            <div style="font-size:14px; font-weight: bold; color:#da1f2e">Invoice:
+                                <strong style="color:#6D6E70" t-field="o.number"/>
+                            </div>
+                        </t>
                         <div style="font-size:14px; font-weight: bold; color:#da1f2e">C.I.F.:
                             <span style="font-weight: normal; color:#6D6E70"
-                                  t-field="o.partner_id.vat"/>
+                                t-field="o.partner_id.commercial_partner_id.vat"/>
                         </div>
-                    </t>
-                    <t t-if="not o.partner_id.amazon_parent_id and o.partner_id.commercial_partner_id.vat">
-                        <div style="font-size:14px; font-weight: bold; color:#da1f2e">C.I.F.:
-                            <span style="font-weight: normal; color:#6D6E70"
-                                  t-field="o.partner_id.commercial_partner_id.vat"/>
-                        </div>
-                    </t>
-                    <t t-if="o.type == 'out_refund' and o.claim_id">
-                        <div style="font-size:14px; font-weight: bold; color:#da1f2e">Claim:
-                            <span style="font-weight: normal; color:#6D6E70" t-field="o.claim_id"/>
-                        </div>
-                    </t>
-                </div>
+                        <t t-if="o.type == 'out_refund' and o.claim_id">
+                            <div style="font-size:14px; font-weight: bold; color:#da1f2e">Claim:
+                                <span style="font-weight: normal; color:#6D6E70" t-field="o.claim_id"/>
+                            </div>
+                        </t>
+                    </div>
+                </t>
             </div>
         </div>
 
@@ -917,92 +949,88 @@ SWIFT/BIC: BESCPTPL
                     </thead>
                     <tbody>
                         <tr style="color:#6D6E70" t-foreach="o.tax_line_ids" t-as="t">
-                            <t t-if="o.amount_untaxed != 0.00">
-                                <t t-set="bool" t-value="false"/>
+                            <t t-set="bool" t-value="false"/>
 
-                                <t t-if="t.base != 0">
-                                    <td>
-                                        <span t-esc="t.tax_id.amount"
-                                              t-field-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>%
-                                    </td>
-                                </t>
-
-                                <t t-if="o.type == 'out_refund'">
-                                    <td>
-                                        <span t-esc="-t.base"
-                                              t-esc-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
-                                    </td>
-                                    <td>
-                                        <span t-esc="-t.amount"
-                                              t-esc-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
-                                    </td>
-                                </t>
-                                <t t-if="o.type != 'out_refund'">
-                                    <td>
-                                        <span t-field="t.base"
-                                              t-field-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
-                                    </td>
-                                    <td>
-                                        <span t-field="t.amount"
-                                              t-field-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
-                                    </td>
-                                </t>
-
-                                <t t-if="len(o.tax_line_ids) == 1">
-                                    <t t-if="o.type == 'out_refund'">
-                                        <td>
-                                            <strong t-esc="(t.amount + t.base)"
-                                                    t-esc-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
-                                        </td>
-                                    </t>
-                                    <t t-if="o.type != 'out_refund'">
-                                        <td>
-                                            <strong t-esc="(t.amount + t.base)"
-                                                    t-esc-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
-                                        </td>
-                                    </t>
-                                </t>
-                                <t t-if="len(o.tax_line_ids) != 1">
-                                    <t t-if="o.type == 'out_refund'">
-                                        <td></td>
-                                    </t>
-                                    <t t-if="o.type != 'out_refund'">
-                                        <td></td>
-                                    </t>
-                                </t>
+                            <t t-if="t.base != 0">
+                                <td>
+                                    <span t-esc="t.tax_id.amount"
+                                            t-field-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>%
+                                </td>
                             </t>
-                        </tr>
 
-                        <tr style="color:#6D6E70">
-                            <t t-if="o.amount_untaxed != 0.00">
-                                <t t-set="bool" t-value="false"/>
-                                <t>
-                                    <td>
-                                        <span/>
-                                    </td>
-                                </t>
-                                <t>
-                                    <td>
-                                        <span/>
-                                    </td>
-                                </t>
-                                <t>
-                                    <td>
-                                        <span/>
-                                    </td>
-                                </t>
+                            <t t-if="o.type == 'out_refund'">
+                                <td>
+                                    <span t-esc="-t.base"
+                                            t-esc-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
+                                </td>
+                                <td>
+                                    <span t-esc="-t.amount"
+                                            t-esc-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
+                                </td>
+                            </t>
+                            <t t-if="o.type != 'out_refund'">
+                                <td>
+                                    <span t-field="t.base"
+                                            t-field-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
+                                </td>
+                                <td>
+                                    <span t-field="t.amount"
+                                            t-field-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
+                                </td>
+                            </t>
+
+                            <t t-if="len(o.tax_line_ids) == 1">
                                 <t t-if="o.type == 'out_refund'">
                                     <td>
-                                        <strong t-esc="-o.amount_total"
+                                        <strong t-esc="(t.amount + t.base)"
                                                 t-esc-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
                                     </td>
                                 </t>
                                 <t t-if="o.type != 'out_refund'">
                                     <td>
-                                        <strong t-field="o.amount_total"
-                                                t-field-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
+                                        <strong t-esc="(t.amount + t.base)"
+                                                t-esc-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
                                     </td>
                                 </t>
+                            </t>
+                            <t t-if="len(o.tax_line_ids) != 1">
+                                <t t-if="o.type == 'out_refund'">
+                                    <td></td>
+                                </t>
+                                <t t-if="o.type != 'out_refund'">
+                                    <td></td>
+                                </t>
+                            </t>
+                        </tr>
+
+                        <tr style="color:#6D6E70">
+                            <t t-set="bool" t-value="false"/>
+                            <t>
+                                <td>
+                                    <span/>
+                                </td>
+                            </t>
+                            <t>
+                                <td>
+                                    <span/>
+                                </td>
+                            </t>
+                            <t>
+                                <td>
+                                    <span/>
+                                </td>
+                            </t>
+                            <t t-if="o.type == 'out_refund'">
+                                <td>
+                                    <strong t-esc="-o.amount_total"
+                                            t-esc-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
+                                </td>
+                            </t>
+                            <t t-if="o.type != 'out_refund'">
+                                <td>
+                                    <strong t-field="o.amount_total"
+                                            t-field-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}"/>
+                                </td>
                             </t>
                         </tr>
                     </tbody>
@@ -1140,7 +1168,7 @@ BIC: CAIXESBBXXX
                         <t t-raw="company.name"></t>
                         <t t-if="country_code == 'ES'">
                         R.M. de Madrid: Tomo 6811, Libro 0, Folio 210, Seccion B, Hoja M-110924, Ins 2º .- CIF:
-                        B80645518<!--<t t-raw="company.initiating_party_identifier"></t>-->
+                        B80645518 Listed in the RII-PYA with registration number 2295 and in the RII-AEE with registration number 7216.<!--<t t-raw="company.initiating_party_identifier"></t>-->
                         </t>
                     </label>
                 </div>

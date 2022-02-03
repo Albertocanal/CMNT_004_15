@@ -24,7 +24,6 @@ from odoo import models, fields, api, _, exceptions
 class StockContainer(models.Model):
 
     _name = 'stock.container'
-    _order = 'write_date desc'
     type = fields.Selection([
         ('air', 'Air'),
         ('sea', 'Sea'),
@@ -38,27 +37,42 @@ class StockContainer(models.Model):
     notes_warehouse = fields.Char(string="Warehouse notes", help="Warehouse notes")
     conf = fields.Boolean(string="Conf", help="Confirmed")
     telex = fields.Boolean(string="Telex", help="Telex")
-    arrived = fields.Boolean(string="Arrived", help="Arrived", compute="_set_arrived")
+    arrived = fields.Boolean(string="Arrived", help="Arrived", compute="_set_arrived", store=True)
     cost = fields.Float(sting="Cost")
     n_ref = fields.Integer(string="Nº ref", store=False, compute="_get_ref")
     forwarder = fields.Many2one('res.partner', domain="['&',('supplier','=',True),('forwarder','=',True)]",
                                 string="FWDR")
-    destination_port = fields.Many2one('stock.container.port', string='NAV/PTO')
-    status = fields.Many2one('stock.container.status', string='Status', help='For more information click on the status')
     forwarder_comercial = fields.Char(related="forwarder.comercial", store=False, string="FWDR")
     incoterm = fields.Many2one('stock.incoterms', string='Incoterm', ondelete="restrict")
     destination_port = fields.Many2one('stock.container.port', string='NAV/PTO', ondelete="restrict")
     status = fields.Many2one('stock.container.status', string='Status', help='For more information click on the status', ondelete="restrict")
     ctns = fields.Char(string="Ctns")
-    departure = fields.Boolean(String="Departure", help="Transport departure")
+    departure = fields.Boolean(string="Departure", help="Transport departure")
+    pickings_warehouse = fields.Char(string="Pickings", store=False, compute="_get_picking_ids")
+    set_eta = fields.Boolean(string="set_eta", help="Set eta", default=0, compute="_set_eta", store=True)
+    set_date_exp = fields.Boolean(string="set_date_expected", help="Set date expected", default=0, compute="_set_date_exp", store=True)
 
     @api.multi
+    @api.depends('eta')
+    def _set_eta(self):
+        for container in self:
+            if container.eta:
+                container.set_eta = True
+    
+    @api.multi
+    @api.depends('date_expected')
+    def _set_date_exp(self):
+        for container in self:
+            if container.date_expected:
+                container.set_date_exp = True
+
+    @api.multi
+    @api.depends('move_ids.picking_id.state')
     def _set_arrived(self):
         for container in self:
-            container.arrived = True
-            for line in container.picking_ids:
-                if line.state != 'done':
-                    container.arrived = False
+            container.arrived = False
+            if container.picking_ids and all(pick_state == 'done' for pick_state in container.picking_ids.mapped('state')):
+                container.arrived = True
 
     @api.multi
     def _set_date_expected(self):
@@ -78,19 +92,28 @@ class StockContainer(models.Model):
             if container.move_ids:
                 max_date = max(container.move_ids.mapped('date_expected') or fields.Date.today())
                 if max_date:
-                    container.date_expected = max_date
                     container.move_ids.write({'date_expected': max_date})
-            if not container.date_expected:
-                container.date_expected = fields.Date.today()
+                    container.date_expected = max_date
+
 
     @api.multi
     def _get_picking_ids(self):
         for container in self:
             res = []
+            pickings_warehouse = ""
+            aux = 0
             for line in container.move_ids:
                 if line.picking_id.id not in res:
                     res.append(line.picking_id.id)
                     container.picking_ids = res
+                    aux += 1
+                    if line.picking_id and aux < 3:
+                        pickings_warehouse = pickings_warehouse + line.picking_id.name + ", "
+                if pickings_warehouse and aux < 3:
+                    container.pickings_warehouse = pickings_warehouse[:-2]
+                elif pickings_warehouse and aux >= 3:
+                    container.pickings_warehouse = pickings_warehouse + "..."
+
 
     @api.multi
     def _get_ref(self):
