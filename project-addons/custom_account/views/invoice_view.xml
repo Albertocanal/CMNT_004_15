@@ -95,13 +95,13 @@
         <field name="groups_id" eval="[(4, ref('purchase.group_purchase_user'))]"/>
     </record>
 
-    <!-- <record id="account_payment.menu_account_payment_return_import" model="ir.ui.menu">
+    <record id="account_payment_return_import.menu_account_payment_return_import" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('purchase.group_purchase_user'))]"/>
     </record>
 
-    <record id="account_payment.payment_return_menu" model="ir.ui.menu">
+    <record id="account_payment_return.payment_return_menu" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('purchase.group_purchase_user'))]"/>
-    </record> -->
+    </record>
 
     <!-- Producto -->
 
